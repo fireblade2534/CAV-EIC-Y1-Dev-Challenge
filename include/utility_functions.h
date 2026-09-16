@@ -9,6 +9,7 @@
 
 using Coord = std::pair<int, int>;
 using MapTemplate = std::vector<std::vector<int> >;
+using PheromoneTemplate = std::vector<std::vector<std::pair<int, int>>>;
 
 struct Node {
     int cost;

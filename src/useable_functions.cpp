@@ -32,7 +32,7 @@ std::vector<Coord> Ant::foodScan(MapTemplate &foodMap) {
  *
  * @return vector of coordinates of locations in that range that have a pheromone marker
  */
-std::vector<Coord> Ant::pheromoneScan(MapTemplate &pheromoneMap) {
+std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap) {
     std::vector<Coord> pheromoneLocations = {};
     for (int i = this->position.first - this->pheromoneRadius; i <= this->position.first + this->pheromoneRadius; ++i) {
         for (int j = this->position.second - this->pheromoneRadius; j <= this->position.second + this->pheromoneRadius;
@@ -40,7 +40,8 @@ std::vector<Coord> Ant::pheromoneScan(MapTemplate &pheromoneMap) {
             if (i < 0 || i >= pheromoneMap.size() || j < 0 || j >= pheromoneMap[0].size()) {
                 continue;
             } else {
-                if (pheromoneMap[i][j] == 1) {
+                if (pheromoneMap[i][j].first != 0 ||
+                    pheromoneMap[i][j].second != 0) {
                     pheromoneLocations.emplace_back(i, j);
                 }
             }
@@ -91,12 +92,12 @@ Coord Ant::move(MapTemplate &terrainMap, Coord dest, MapTemplate &foodMap) {
  *
  * @param pheromoneMap pheromone layer of world map
  */
-void Ant::dropPheromone(MapTemplate &pheromoneMap) {
+void Ant::dropPheromone(PheromoneTemplate &pheromoneMap) {
     if (this->pheromoneDropped) {
         erasePheromone(pheromoneMap);
     }
 
-    pheromoneMap[this->position.first][this->position.second] = 1;
+    pheromoneMap[this->position.first][this->position.second] = std::pair{1, 1};
     this->pheromonePosition = this->position;
     this->pheromoneDropped = true;
 }
@@ -105,9 +106,9 @@ void Ant::dropPheromone(MapTemplate &pheromoneMap) {
  *
 * @param pheromoneMap pheromone layer of world map
  */
-void Ant::erasePheromone(MapTemplate &pheromoneMap) {
+void Ant::erasePheromone(PheromoneTemplate &pheromoneMap) {
     if (this->pheromoneDropped) {
-        pheromoneMap[this->pheromonePosition.first][this->pheromonePosition.second] = 0;
+        pheromoneMap[this->pheromonePosition.first][this->pheromonePosition.second] = std::pair{0, 0};
         this->pheromonePosition = Coord(-1, -1);
         this->pheromoneDropped = false;
     }

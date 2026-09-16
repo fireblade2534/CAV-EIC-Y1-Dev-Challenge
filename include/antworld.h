@@ -14,13 +14,13 @@ public:
 
     std::vector<Coord> foodScan(MapTemplate &foodMap);
 
-    std::vector<Coord> pheromoneScan(MapTemplate &pheromoneMap);
+    std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap);
 
     Coord move(MapTemplate &terrainMap, Coord dest, MapTemplate &foodMap);
 
-    void dropPheromone(MapTemplate &foodMap);
+    void dropPheromone(PheromoneTemplate &pheromoneMap);
 
-    void erasePheromone(MapTemplate &pheromoneMap);
+    void erasePheromone(PheromoneTemplate &pheromoneMap);
 
     Coord returnHome(MapTemplate &terrainMap, MapTemplate &foodMap);
 
@@ -50,7 +50,7 @@ public:
 
     MapTemplate terrainMap;
     MapTemplate foodMap;
-    MapTemplate pheromoneMap;
+    PheromoneTemplate pheromoneMap;
 
     std::vector<Ant> ants = {};
     Coord homeCoordinates = Coord(-1, -1);
