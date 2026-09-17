@@ -2,11 +2,50 @@
 #define DEV_CHALLENGE_ANTWORLD_H
 
 #include <vector>
-#include  <random>
+#include <random>
 #include "utility_functions.h"
+#include <variant>
 //
 // Created by dusan on 9/4/26.
 //
+
+struct FoundFood {
+    void onChangeTo();
+    void onChangeFrom();
+    void onTick(Ant& ant);
+};
+
+struct ReturningToHub {
+    void onChangeTo();
+    void onChangeFrom();
+    void onTick(Ant& ant);
+};
+
+struct FollowingPheromoneTrail {
+    void onChangeTo();
+    void onChangeFrom();
+    void onTick(Ant& ant);
+};
+
+struct DeterminedExploration {
+    void onChangeTo();
+    void onChangeFrom();
+    void onTick(Ant& ant);
+};
+
+struct RandomExploration {
+    void onChangeTo();
+    void onChangeFrom();
+    void onTick(Ant& ant);
+};
+
+using AntState = std::variant<
+    FoundFood,
+    ReturningToHub,
+    FollowingPheromoneTrail,
+    DeterminedExploration,
+    RandomExploration
+>;
 
 class Ant {
 public:
@@ -17,6 +56,8 @@ public:
     std::vector<Coord> pheromoneScan(MapTemplate &pheromoneMap);
 
     Coord move(MapTemplate &terrainMap, Coord dest, MapTemplate &foodMap);
+
+    void switchTo(AntState nextState);
 
     void dropPheromone(MapTemplate &foodMap);
 
@@ -34,6 +75,7 @@ public:
     bool pheromoneDropped{false};
     Coord pheromonePosition = Coord(-1, -1);
     bool carryingFood{false};
+    AntState state{DeterminedExploration {}};
 };
 
 class AntWorld {
@@ -42,7 +84,9 @@ public:
 
     bool worldStep();
 
-    void forage();
+    void beforeAntUpdate();
+
+    void afterAntUpdate();
 
     void updateWorld();
 

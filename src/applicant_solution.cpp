@@ -4,11 +4,18 @@
 
 #include "../include/antworld.h"
 
+void AntWorld::beforeAntUpdate() {
+
+}
+
+void AntWorld::afterAntUpdate() {
+
+}
 
 /** @brief this is where you as the applicant will make use of the above functions to develop your solution.
  * here are some existing examples of how calling these functions works to help get you started!
  */
-void AntWorld::forage() {
+//void AntWorld::forage() {
     // std::vector<Coord> visibleFood = this->ants[0].foodScan(this->foodMap);
     //
     // Coord desiredDestination = Coord(5, 5);
@@ -20,6 +27,6 @@ void AntWorld::forage() {
     // this->ants[0].erasePheromone(this->pheromoneMap);
     //
     // this->ants[0].returnHome(this->terrainMap, this->foodMap);
-}
+//}
 
 /** You may insert any custom functions below **/
