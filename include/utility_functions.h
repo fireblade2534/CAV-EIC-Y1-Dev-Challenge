@@ -19,6 +19,18 @@ struct Node {
     }
 };
 
+inline int getMoveCost(const std::vector<std::vector<int> > &grid, int currentRow, int currentColumn, int nextRow, int nextColumn) {
+    if (std::abs(currentRow - nextRow) + std::abs(currentColumn - nextColumn) != 1) {
+        return INFINITY;
+    }
+
+    return 1 + std::abs(grid[currentRow][currentColumn] - grid[nextRow][nextColumn]);
+}
+
+inline int getMoveCost(const std::vector<std::vector<int> > &grid, Coord current, Coord next) {
+    return getMoveCost(grid, current.first, current.second, next.first, next.second);
+}
+
 inline std::vector<Coord> shortestPath(
     const std::vector<std::vector<int> > &grid,
     Coord start,
@@ -71,8 +83,12 @@ inline std::vector<Coord> shortestPath(
                 nc < 0 || nc >= cols)
                 continue;
 
-            int moveCost =
-                    1 + std::abs(grid[r][c] - grid[nr][nc]);
+            int moveCost = getMoveCost(grid, r, c, nr, nc);
+
+            if (moveCost == INFINITY) {
+                printf("Shortest path Error: attempted to move to %d, %d from %d, %d", nr, nc, r, c);
+                continue;
+            }
 
             int newCost = cost + moveCost;
 
@@ -115,22 +131,7 @@ inline int calculatePathCost(
         auto [r1, c1] = path[i - 1];
         auto [r2, c2] = path[i];
 
-        cost += 1 + std::abs(grid[r1][c1] - grid[r2][c2]);
-    }
-
-    return cost;
-}
-
-inline int moveAlongPath(
-    const std::vector<std::vector<int> > &grid,
-    const std::vector<Coord> &path) {
-    int cost = 0;
-
-    for (int i = 1; i < path.size(); ++i) {
-        auto [r1, c1] = path[i - 1];
-        auto [r2, c2] = path[i];
-
-        cost += 1 + std::abs(grid[r1][c1] - grid[r2][c2]);
+        cost += getMoveCost(grid, r1, c1, r2, c2);
     }
 
     return cost;
