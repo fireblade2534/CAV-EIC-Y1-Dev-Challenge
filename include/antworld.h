@@ -14,15 +14,18 @@ public:
 
     std::vector<Coord> foodScan(MapTemplate &foodMap);
 
-    std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap);
+    std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
     Coord move(MapTemplate &terrainMap, Coord dest, MapTemplate &foodMap);
 
-    void dropPheromone(PheromoneTemplate &pheromoneMap);
+    void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
     void erasePheromone(PheromoneTemplate &pheromoneMap);
 
     Coord returnHome(MapTemplate &terrainMap, MapTemplate &foodMap);
+
+    bool followPheromoneTrail(MapTemplate &terrainMap, MapTemplate &foodMap,
+                               PheromoneTemplate pheromoneMap);
 
     int energy{0};
 
