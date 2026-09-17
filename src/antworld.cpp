@@ -38,14 +38,41 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount) : 
                                                                int(mapSize_x * mapSize_y * 0.4))(rng);
         std::cout << initialEnergy << std::endl;
         this->ants.emplace_back(initialEnergy, this->homeCoordinates);
+
     }
 
     this->score = 0;
 }
 
+void Ant::switchTo(AntState nextState) {
+    if (nextState.index() == state.index()) {
+        return;
+    }
+
+    std::visit([](auto& current) {
+        current.onChangeFrom();
+    }, state);
+
+    state = nextState;
+
+    std::visit([](auto& current) {
+        current.onChangeTo();
+    }, state);
+}
+
 bool AntWorld::worldStep() {
-    // performs all ant actions
-    this->forage();
+    // Performs anything that needs to be done before the ants update
+    this->beforeAntUpdate();
+
+    // Performs all ant actions
+    for (Ant& ant : ants) {
+        std::visit([&ant](auto& current) {
+            current.onTick(ant);
+        }, ant.state);
+    }
+    
+    // Performs anything that needs to be done after the ants update
+    this->afterAntUpdate();
 
     // updates score and cleans ants
     this->updateWorld();
