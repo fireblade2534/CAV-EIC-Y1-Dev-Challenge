@@ -10,23 +10,23 @@
 
 void FoundFood::onChangeTo() {}
 void FoundFood::onChangeFrom() {}
-void FoundFood::onTick(Ant &ant) {}
+void FoundFood::onTick(Ant &ant, AntWorld* world) {}
 
 void ReturningToHub::onChangeTo() {}
 void ReturningToHub::onChangeFrom() {}
-void ReturningToHub::onTick(Ant &ant) {}
+void ReturningToHub::onTick(Ant &ant, AntWorld* world) {}
 
 void FollowingPheromoneTrail::onChangeTo() {}
 void FollowingPheromoneTrail::onChangeFrom() {}
-void FollowingPheromoneTrail::onTick(Ant &ant) {}
+void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld* world) {}
 
 void DeterminedExploration::onChangeTo() {}
 void DeterminedExploration::onChangeFrom() {}
-void DeterminedExploration::onTick(Ant &ant) {}
+void DeterminedExploration::onTick(Ant &ant, AntWorld* world) {}
 
 void RandomExploration::onChangeTo() {}
 void RandomExploration::onChangeFrom() {}
-void RandomExploration::onTick(Ant &ant) {}
+void RandomExploration::onTick(Ant &ant, AntWorld* world) {}
 
 Ant::Ant(int initEnergy, Coord homeCoordinates) {
     // assign initial energy
@@ -87,8 +87,8 @@ bool AntWorld::worldStep() {
 
     // Performs all ant actions
     for (Ant& ant : ants) {
-        std::visit([&ant](auto& current) {
-            current.onTick(ant);
+        std::visit([&ant, this](auto& current) {
+            current.onTick(ant, this);
         }, ant.state);
     }
     
