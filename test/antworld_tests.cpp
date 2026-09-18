@@ -143,7 +143,7 @@ namespace {
         PheromoneTemplate pheromones(12, std::vector<std::pair<int, int>>(12, {0, 0}));
         pheromones[5][5] = {1, 1};
         pheromones[6][6] = pheromones[11][11] = {1, 1};
-        const auto pscan = ant.pheromoneScan(pheromones);
+        const auto pscan = ant.pheromoneScan(pheromones, PheromoneType::Trail);
         // check(pscan.size() == 1 && pscan.front() == Coord(5, 5),
         //       "pheromoneScan finds occupied cells within radius");
     }
@@ -151,15 +151,15 @@ namespace {
     void testPheromones() {
         PheromoneTemplate map(3, std::vector<std::pair<int, int>>(3, {0, 0}));
         Ant first(10, {1, 1}), second(10, {1, 1});
-        first.dropPheromone(map);
-        second.dropPheromone(map);
+        first.dropPheromone(map, PheromoneType::Trail);
+        second.dropPheromone(map, PheromoneType::Trail);
         // check(map[1][1] == 2, "overlapping pheromones retain counts");
         first.erasePheromone(map);
         // check(map[1][1] == 1, "one erase preserves another ant's marker");
         first.erasePheromone(map);
         // check(map[1][1] == 1, "repeated erase is harmless");
         second.position = {2, 2};
-        second.dropPheromone(map);
+        second.dropPheromone(map, PheromoneType::Trail);
         check(map[1][1].first == 0 && map[2][2].first == 1, "dropping again moves existing marker");
     }
 

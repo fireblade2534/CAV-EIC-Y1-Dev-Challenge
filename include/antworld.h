@@ -55,13 +55,13 @@ public:
 
     std::vector<Coord> foodScan(MapTemplate &foodMap);
 
-    std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap);
+    std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
     Coord move(MapTemplate &terrainMap, Coord dest, MapTemplate &foodMap);
 
     void switchTo(AntState nextState);
 
-    void dropPheromone(PheromoneTemplate &foodMap);
+    void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
     void erasePheromone(PheromoneTemplate &pheromoneMap);
 

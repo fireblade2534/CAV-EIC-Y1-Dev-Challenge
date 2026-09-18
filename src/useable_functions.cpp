@@ -32,7 +32,7 @@ std::vector<Coord> Ant::foodScan(MapTemplate &foodMap) {
  *
  * @return vector of coordinates of locations in that range that have a pheromone marker
  */
-std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap) {
+std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type) {
     std::vector<Coord> pheromoneLocations = {};
     for (int i = this->position.first - this->pheromoneRadius; i <= this->position.first + this->pheromoneRadius; ++i) {
         for (int j = this->position.second - this->pheromoneRadius; j <= this->position.second + this->pheromoneRadius;
@@ -40,9 +40,15 @@ std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap) {
             if (i < 0 || i >= pheromoneMap.size() || j < 0 || j >= pheromoneMap[0].size()) {
                 continue;
             } else {
-                if (pheromoneMap[i][j].first != 0 ||
-                    pheromoneMap[i][j].second != 0) {
-                    pheromoneLocations.emplace_back(i, j);
+                switch (type) {
+                case PheromoneType::Trail:
+                    if (pheromoneMap[i][j].first != 0)
+                        pheromoneLocations.emplace_back(i, j);
+                    break;
+                case PheromoneType::Food:
+                    if (pheromoneMap[i][j].second != 0)
+                        pheromoneLocations.emplace_back(i, j);
+                    break;
                 }
             }
         }
@@ -92,12 +98,25 @@ Coord Ant::move(MapTemplate &terrainMap, Coord dest, MapTemplate &foodMap) {
  *
  * @param pheromoneMap pheromone layer of world map
  */
-void Ant::dropPheromone(PheromoneTemplate &pheromoneMap) {
+void Ant::dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type) {
     if (this->pheromoneDropped) {
         erasePheromone(pheromoneMap);
     }
 
-    pheromoneMap[this->position.first][this->position.second] = std::pair{1, 1};
+    std::pair<int, int> drop;
+
+    switch (type) {
+    case PheromoneType::Trail:
+        drop.first = 1;
+        drop.second = 0;
+        break;
+    case PheromoneType::Food:
+        drop.first = 0;
+        drop.second = 1;
+        break;
+    }
+
+    pheromoneMap[this->position.first][this->position.second] = drop;
     this->pheromonePosition = this->position;
     this->pheromoneDropped = true;
 }
