@@ -67,7 +67,7 @@ std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, Pheromone
  */
 Coord Ant::move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap) {
     if (step.first >= terrainMap.size() || step.second >= terrainMap[0].size()) {
-        printf("Illegal move: attempted to move to %d, %d in %d, %d grid space", step.first, step.second,
+        printf("Illegal move: attempted to move to %d, %d in %d, %d grid space\n", step.first, step.second,
                terrainMap.size(), terrainMap[0].size());
         return this->position;
     }
@@ -75,17 +75,17 @@ Coord Ant::move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap) {
     int cost = getMoveCost(terrainMap, this->position, step);
 
     if (cost == INFINITY) {
-        printf("Illegal move: attempted to move to %d, %d which violates one tile per step", step.first, step.second);
+        printf("Illegal move: attempted to move to %d, %d which violates one tile per step\n", step.first, step.second);
         return this->position;
     }
 
-    if (cost > energy) {
-        printf("Illegal move: attempted to move to %d, %d which would consume %d energy when the ant has %d energy", step.first, step.second, cost, energy);
+    if (cost > this->energy) {
+        printf("Illegal move: attempted to move to %d, %d which would consume %d energy when the ant has %d energy\n", step.first, step.second, cost, this->energy);
         return this->position;
     }
 
     this->position = step;
-    energy -= cost;
+    this->energy -= cost;
 
     if (foodMap[this->position.first][this->position.second] == 1 && !this->carryingFood) {
         foodMap[this->position.first][this->position.second] = 0;

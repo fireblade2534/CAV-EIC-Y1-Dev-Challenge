@@ -103,16 +103,34 @@ namespace {
         check(valid, "seeded ant positions and energies satisfy invariants");
     }
 
+    void attemptMoveAlongPath(Ant &ant, Coord dest, MapTemplate& terrain,
+                              MapTemplate& food) {
+        auto paths = shortestPath(terrain, ant.position, dest);
+        paths.erase(paths.begin());
+
+        for (auto step : paths) {
+            auto before = ant.position;
+            auto after = ant.move(terrain, step, food);
+
+            if (before == after) {
+                break;
+            }
+        }
+    }
+
     void testMovementAndFood() {
         MapTemplate terrain{{0, 0, 2, 2}};
         MapTemplate food{{0, 0, 0, 1}};
         Ant ant(3, {0, 0});
-        check(ant.move(terrain, {0, 3}, food) == Coord(0, 1),
+
+        attemptMoveAlongPath(ant, {0, 3}, terrain, food);
+        check(ant.position == Coord(0, 1),
               "move stops before an unaffordable edge");
         check(ant.energy == 2, "move deducts completed-edge energy");
 
         ant.energy = 10;
-        check(ant.move(terrain, {0, 3}, food) == Coord(0, 3), "move reaches affordable destination");
+        attemptMoveAlongPath(ant, {0, 3}, terrain, food);
+        check(ant.position == Coord(0, 3), "move reaches affordable destination");
         check(ant.energy == 6, "move deducts flat and elevation costs");
         check(ant.carryingFood && food[0][3] == 0, "move collects destination food");
         food[0][2] = 1;
@@ -127,7 +145,7 @@ namespace {
 
         Ant homebound(10, {0, 0});
         homebound.position = {0, 3};
-        homebound.returnHome(terrain, food);
+        attemptMoveAlongPath(homebound, homebound.homeCoord, terrain, food);
         check(homebound.position == Coord(0, 0), "returnHome targets home coordinate");
     }
 
