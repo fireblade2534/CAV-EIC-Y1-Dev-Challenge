@@ -56,35 +56,36 @@ std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, Pheromone
     return pheromoneLocations;
 }
 
-/** @brief this function computes the most energy efficient route from the ant's current position to target destination.
- * it will follow the shortest path for as long as it has the energy to do so. When the ant reaches it's final position,
- * if food exists, it will pick it up.
+/** @brief This function moves the ant to the provided step.
+ * The step can only be one unit in the cardinal directions. The ant will step if it has the energy to do so. If food exists at the step, it will pick it up.
  *
  * @param terrainMap terrain layer of the world map
- * @param dest coordinates of destination
+ * @param step coordinates of the step
  * @param foodMap food layer of the world map
  *
- * @return coordinates of final ant position. can be used to double check it's final position
+ * @return Coordinates of final ant position. Can be used to double check it's final position
  */
-Coord Ant::move(MapTemplate &terrainMap, Coord dest, MapTemplate &foodMap) {
-    if (dest.first >= terrainMap.size() || dest.second >= terrainMap[0].size()) {
-        printf("illegal move: attempted to move to %d, %d in %d, %d grid space", dest.first, dest.second,
+Coord Ant::move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap) {
+    if (step.first >= terrainMap.size() || step.second >= terrainMap[0].size()) {
+        printf("Illegal move: attempted to move to %d, %d in %d, %d grid space", step.first, step.second,
                terrainMap.size(), terrainMap[0].size());
         return this->position;
     }
-    std::vector<Coord> path = shortestPath(terrainMap, this->position, dest);
 
-    for (int i = 1; i < path.size(); ++i) {
-        auto [r1, c1] = path[i - 1];
-        auto [r2, c2] = path[i];
+    int cost = getMoveCost(terrainMap, this->position, step);
 
-        int cost = 1 + std::abs(terrainMap[r1][c1] - terrainMap[r2][c2]);
-        if (cost > energy) {
-            break;
-        }
-        this->position = path[i];
-        energy -= cost;
+    if (cost == INFINITY) {
+        printf("Illegal move: attempted to move to %d, %d which violates one tile per step", step.first, step.second);
+        return this->position;
     }
+
+    if (cost > energy) {
+        printf("Illegal move: attempted to move to %d, %d which would consume %d energy when the ant has %d energy", step.first, step.second, cost, energy);
+        return this->position;
+    }
+
+    this->position = step;
+    energy -= cost;
 
     if (foodMap[this->position.first][this->position.second] == 1 && !this->carryingFood) {
         foodMap[this->position.first][this->position.second] = 0;
@@ -131,15 +132,4 @@ void Ant::erasePheromone(PheromoneTemplate &pheromoneMap) {
         this->pheromonePosition = Coord(-1, -1);
         this->pheromoneDropped = false;
     }
-}
-
-/** @brief basically the move function, with the destination preset to the home base coordinates
- *
- * @param terrainMap terrain layer of the world map
- * @param foodMap food layer of the world map
- *
- * @return coordinates of final ant position. can be used to double check it's final position
- */
-Coord Ant::returnHome(MapTemplate &terrainMap, MapTemplate &foodMap) {
-    return this->move(terrainMap, this->homeCoord, foodMap);
 }
