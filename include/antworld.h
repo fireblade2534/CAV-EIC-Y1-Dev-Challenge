@@ -13,32 +13,32 @@ class Ant;
 class AntWorld;
 
 struct FoundFood {
-    void onChangeTo();
-    void onChangeFrom();
+    void onChangeTo(Ant& ant);
+    void onChangeFrom(Ant& ant);
     void onTick(Ant& ant, AntWorld* world);
 };
 
 struct ReturningToHub {
-    void onChangeTo();
-    void onChangeFrom();
+    void onChangeTo(Ant& ant);
+    void onChangeFrom(Ant& ant);
     void onTick(Ant& ant, AntWorld* world);
 };
 
 struct FollowingPheromoneTrail {
-    void onChangeTo();
-    void onChangeFrom();
+    void onChangeTo(Ant& ant);
+    void onChangeFrom(Ant& ant);
     void onTick(Ant& ant, AntWorld* world);
 };
 
 struct DeterminedExploration {
-    void onChangeTo();
-    void onChangeFrom();
+    void onChangeTo(Ant& ant);
+    void onChangeFrom(Ant& ant);
     void onTick(Ant& ant, AntWorld* world);
 };
 
 struct RandomExploration {
-    void onChangeTo();
-    void onChangeFrom();
+    void onChangeTo(Ant& ant);
+    void onChangeFrom(Ant& ant);
     void onTick(Ant& ant, AntWorld* world);
 };
 

@@ -8,24 +8,24 @@
 // Created by dusan on 9/4/26.
 //
 
-void FoundFood::onChangeTo() {}
-void FoundFood::onChangeFrom() {}
+void FoundFood::onChangeTo(Ant& ant) {}
+void FoundFood::onChangeFrom(Ant& ant) {}
 void FoundFood::onTick(Ant &ant, AntWorld* world) {}
 
-void ReturningToHub::onChangeTo() {}
-void ReturningToHub::onChangeFrom() {}
+void ReturningToHub::onChangeTo(Ant& ant) {}
+void ReturningToHub::onChangeFrom(Ant& ant) {}
 void ReturningToHub::onTick(Ant &ant, AntWorld* world) {}
 
-void FollowingPheromoneTrail::onChangeTo() {}
-void FollowingPheromoneTrail::onChangeFrom() {}
+void FollowingPheromoneTrail::onChangeTo(Ant& ant) {}
+void FollowingPheromoneTrail::onChangeFrom(Ant& ant) {}
 void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld* world) {}
 
-void DeterminedExploration::onChangeTo() {}
-void DeterminedExploration::onChangeFrom() {}
+void DeterminedExploration::onChangeTo(Ant& ant) {}
+void DeterminedExploration::onChangeFrom(Ant& ant) {}
 void DeterminedExploration::onTick(Ant &ant, AntWorld* world) {}
 
-void RandomExploration::onChangeTo() {}
-void RandomExploration::onChangeFrom() {}
+void RandomExploration::onChangeTo(Ant& ant) {}
+void RandomExploration::onChangeFrom(Ant& ant) {}
 void RandomExploration::onTick(Ant &ant, AntWorld* world) {}
 
 Ant::Ant(int initEnergy, Coord homeCoordinates) {
@@ -70,14 +70,14 @@ void Ant::switchTo(AntState nextState) {
         return;
     }
 
-    std::visit([](auto& current) {
-        current.onChangeFrom();
+    std::visit([this](auto& current) {
+        current.onChangeFrom(*this);
     }, state);
 
     state = nextState;
 
-    std::visit([](auto& current) {
-        current.onChangeTo();
+    std::visit([this](auto& current) {
+        current.onChangeTo(*this);
     }, state);
 }
 
