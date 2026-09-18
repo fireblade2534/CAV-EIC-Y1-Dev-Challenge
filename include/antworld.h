@@ -9,6 +9,8 @@
 // Created by dusan on 9/4/26.
 //
 
+class Ant;
+
 struct FoundFood {
     void onChangeTo();
     void onChangeFrom();

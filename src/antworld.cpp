@@ -8,6 +8,26 @@
 // Created by dusan on 9/4/26.
 //
 
+void FoundFood::onChangeTo() {}
+void FoundFood::onChangeFrom() {}
+void FoundFood::onTick(Ant &ant) {}
+
+void ReturningToHub::onChangeTo() {}
+void ReturningToHub::onChangeFrom() {}
+void ReturningToHub::onTick(Ant &ant) {}
+
+void FollowingPheromoneTrail::onChangeTo() {}
+void FollowingPheromoneTrail::onChangeFrom() {}
+void FollowingPheromoneTrail::onTick(Ant &ant) {}
+
+void DeterminedExploration::onChangeTo() {}
+void DeterminedExploration::onChangeFrom() {}
+void DeterminedExploration::onTick(Ant &ant) {}
+
+void RandomExploration::onChangeTo() {}
+void RandomExploration::onChangeFrom() {}
+void RandomExploration::onTick(Ant &ant) {}
+
 Ant::Ant(int initEnergy, Coord homeCoordinates) {
     // assign initial energy
     this->energy = initEnergy;
