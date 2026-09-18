@@ -43,7 +43,8 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount) : 
     // come back to this
     int foodCount = int(mapSize_x * mapSize_y * 0.4);
     this->foodMap = spreadFood(mapSize_x, mapSize_y, foodCount, this->rng);
-    this->pheromoneMap = MapTemplate(mapSize_x, std::vector<int>(mapSize_y, 0));
+    this->pheromoneMap = PheromoneTemplate(
+        mapSize_x, std::vector<std::pair<int, int>>(mapSize_y, {0, 0}));
 
     // Randomly generating home coordinates
 

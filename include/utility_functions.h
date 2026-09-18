@@ -9,6 +9,9 @@
 
 using Coord = std::pair<int, int>;
 using MapTemplate = std::vector<std::vector<int> >;
+using PheromoneTemplate = std::vector<std::vector<std::pair<int, int>>>;
+
+enum class PheromoneType { Trail, Food };
 
 struct Node {
     int cost;
