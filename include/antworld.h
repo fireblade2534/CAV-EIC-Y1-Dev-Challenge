@@ -58,15 +58,13 @@ public:
 
     std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
-    Coord move(MapTemplate &terrainMap, Coord dest, MapTemplate &foodMap);
+    Coord move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap);
 
     void switchTo(AntState nextState);
 
     void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
     void erasePheromone(PheromoneTemplate &pheromoneMap);
-
-    Coord returnHome(MapTemplate &terrainMap, MapTemplate &foodMap);
 
     int energy{0};
 
