@@ -16,17 +16,13 @@ void ReturningToHub::onChangeTo(Ant& ant, AntWorld* world) {}
 void ReturningToHub::onChangeFrom(Ant& ant, AntWorld* world) {}
 void ReturningToHub::onTick(Ant &ant, AntWorld* world) {}
 
-void FollowingPheromoneTrail::onChangeTo(Ant& ant, AntWorld* world) {}
-void FollowingPheromoneTrail::onChangeFrom(Ant& ant, AntWorld* world) {}
-void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld* world) {}
+void RandomExploration::onChangeTo(Ant &ant, AntWorld *world) {}
+void RandomExploration::onChangeFrom(Ant &ant, AntWorld *world) {}
+void RandomExploration::onTick(Ant &ant, AntWorld *world) { }
 
-void DeterminedExploration::onChangeTo(Ant& ant, AntWorld* world) {}
-void DeterminedExploration::onChangeFrom(Ant& ant, AntWorld* world) {}
-void DeterminedExploration::onTick(Ant &ant, AntWorld* world) {}
-
-void RandomExploration::onChangeTo(Ant& ant, AntWorld* world) {}
-void RandomExploration::onChangeFrom(Ant& ant, AntWorld* world) {}
-void RandomExploration::onTick(Ant &ant, AntWorld* world) {}
+void DeterminedExploration::onChangeTo(Ant &ant, AntWorld *world) {}
+void DeterminedExploration::onChangeFrom(Ant &ant, AntWorld *world) {}
+void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {}
 
 Ant::Ant(int initEnergy, Coord homeCoordinates) {
     // assign initial energy

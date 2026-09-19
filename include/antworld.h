@@ -25,6 +25,8 @@ struct ReturningToHub {
 };
 
 struct FollowingPheromoneTrail {
+    Coord foodTarget = {-1, -1};
+
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
