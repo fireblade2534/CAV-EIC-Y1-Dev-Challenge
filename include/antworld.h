@@ -60,7 +60,7 @@ public:
 
     Coord move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap);
 
-    void switchTo(AntState nextState);
+    void switchTo(AntState nextState, AntWorld* world);
 
     void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
 

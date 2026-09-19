@@ -65,19 +65,19 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount) : 
     this->score = 0;
 }
 
-void Ant::switchTo(AntState nextState) {
+void Ant::switchTo(AntState nextState, AntWorld* world) {
     if (nextState.index() == state.index()) {
         return;
     }
 
-    std::visit([this](auto& current) {
-        current.onChangeFrom(*this);
+    std::visit([this, world](auto& current) {
+        current.onChangeFrom(*this, world);
     }, state);
 
     state = nextState;
 
-    std::visit([this](auto& current) {
-        current.onChangeTo(*this);
+    std::visit([this, world](auto& current) {
+        current.onChangeTo(*this, world);
     }, state);
 }
 
