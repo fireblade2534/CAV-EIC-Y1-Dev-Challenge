@@ -8,10 +8,6 @@
 //
 
 
-void RandomExploration::onChangeTo(Ant &ant, AntWorld *world) {}
-void RandomExploration::onChangeFrom(Ant &ant, AntWorld *world) {}
-void RandomExploration::onTick(Ant &ant, AntWorld *world) { }
-
 Ant::Ant(int initEnergy, Coord homeCoordinates, double epsilon, int stickiness) {
     // assign initial energy
     this->energy = initEnergy;
