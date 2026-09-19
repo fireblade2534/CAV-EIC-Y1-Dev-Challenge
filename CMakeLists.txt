@@ -14,6 +14,7 @@ set(FRAMEWORK_SOURCES
 set(STATE_SOURCES
     src/exploration.cpp
     src/food.cpp
+    src/follow_trail.cpp
 )
 
 add_executable(dev_challenge
