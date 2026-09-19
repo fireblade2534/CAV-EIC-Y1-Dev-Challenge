@@ -55,9 +55,13 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     */
 
     if (this->foodTarget.first == -1 || this->foodTarget.second == -1) {
-        ant.switchTo(RandomExploration{}, world);
-    } else if (ant.position == this->foodTarget && ant.carryingFood) {
-        ant.switchTo(ReturningToHub{}, world);
+        ant.switchTo(DeterminedExploration{}, world);
+    } else if (ant.position == this->foodTarget) {
+        if (ant.carryingFood) {
+            ant.switchTo(ReturningToHub{}, world);
+        } else {
+            ant.switchTo(DeterminedExploration{}, world);
+        }
     }
 
     auto paths =
@@ -70,6 +74,6 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     if (before == after && ant.energy != 0) {
         // cannot possibly reach the food, transition to random exploration
         // again
-        ant.switchTo(RandomExploration{}, world);
+        ant.switchTo(DeterminedExploration{}, world);
     }
 }
