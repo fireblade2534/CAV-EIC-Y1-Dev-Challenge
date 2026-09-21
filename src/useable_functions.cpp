@@ -33,7 +33,8 @@ std::vector<Coord> Ant::foodScan(MapTemplate &foodMap) {
  * @return vector of coordinates of locations in that range that have a pheromone marker
  */
 std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type) {
-    std::vector<Coord> pheromoneLocations = {};
+    std::vector<Coord> pheromoneLocation;
+
     for (int i = this->position.first - this->pheromoneRadius; i <= this->position.first + this->pheromoneRadius; ++i) {
         for (int j = this->position.second - this->pheromoneRadius; j <= this->position.second + this->pheromoneRadius;
              ++j) {
@@ -43,17 +44,18 @@ std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, Pheromone
                 switch (type) {
                 case PheromoneType::Trail:
                     if (pheromoneMap[i][j].first != 0)
-                        pheromoneLocations.emplace_back(i, j);
+                        pheromoneLocation.emplace_back(i, j);
                     break;
                 case PheromoneType::Food:
                     if (pheromoneMap[i][j].second != 0)
-                        pheromoneLocations.emplace_back(i, j);
+                        pheromoneLocation.emplace_back(i, j);
                     break;
                 }
             }
         }
     }
-    return pheromoneLocations;
+
+    return pheromoneLocation;
 }
 
 /** @brief This function moves the ant to the provided step.

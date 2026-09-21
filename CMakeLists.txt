@@ -11,10 +11,15 @@ set(FRAMEWORK_SOURCES
         src/useable_functions.cpp
 )
 
+set(STATE_SOURCES
+    src/follow_trail.cpp
+)
+
 add_executable(dev_challenge
         src/main.cpp
         src/applicant_solution.cpp
         ${FRAMEWORK_SOURCES}
+        ${STATE_SOURCES}
 )
 
 target_include_directories(dev_challenge PRIVATE
@@ -34,6 +39,7 @@ if (BUILD_TESTING)
             test/antworld_tests.cpp
             src/applicant_solution.cpp
             ${FRAMEWORK_SOURCES}
+            ${STATE_SOURCES}
     )
 
     target_include_directories(antworld_tests PRIVATE
