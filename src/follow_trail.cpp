@@ -56,11 +56,14 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
 
     if (this->foodTarget.first == -1 || this->foodTarget.second == -1) {
         ant.switchTo(DeterminedExploration{}, world);
+        return;
     } else if (ant.position == this->foodTarget) {
         if (ant.carryingFood) {
             ant.switchTo(ReturningToHub{}, world);
+            return;
         } else {
             ant.switchTo(DeterminedExploration{}, world);
+            return;
         }
     }
 
