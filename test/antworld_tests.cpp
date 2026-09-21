@@ -136,7 +136,7 @@ namespace {
         food[0][2] = 1;
         ant.move(terrain, {0, 2}, food);
         check(food[0][2] == 1, "carrying ant does not consume another item");
-
+        
         const Coord previous = ant.position;
         const int previousEnergy = ant.energy;
         ant.move(terrain, {9, 9}, food);
@@ -168,17 +168,25 @@ namespace {
 
     void testPheromones() {
         PheromoneTemplate map(3, std::vector<std::pair<int, int>>(3, {0, 0}));
-        Ant first(10, {1, 1}), second(10, {1, 1});
-        first.dropPheromone(map, PheromoneType::Trail);
-        second.dropPheromone(map, PheromoneType::Trail);
-        // check(map[1][1] == 2, "overlapping pheromones retain counts");
-        first.erasePheromone(map);
-        // check(map[1][1] == 1, "one erase preserves another ant's marker");
-        first.erasePheromone(map);
-        // check(map[1][1] == 1, "repeated erase is harmless");
-        second.position = {2, 2};
-        second.dropPheromone(map, PheromoneType::Trail);
-        check(map[1][1].first == 0 && map[2][2].first == 1, "dropping again moves existing marker");
+        Ant first(10, {1, 1});
+        first.dropPheromone(map, PheromoneType::Trail, 10);
+        check(map[1][1].first == 10 && map[1][1].second == 0, "dropping trail only write trail pheromones");
+        
+        updatePheromones(map);
+        check(map[1][1].first == 9, "updating pheromones causes strength decay");
+
+        first.dropPheromone(map, PheromoneType::Food, 15);
+        check(map[1][1].first == 9 && map[1][1].second == 15, "dropping food only write food pheromones");
+
+        updatePheromones(map);
+        check(map[1][1].first == 8 && map[1][1].second == 14, "updating pheromones causes strength decay on both channels");
+
+        first.erasePheromone(map, PheromoneType::Trail);
+        check(map[1][1].first == 0 && map[1][1].second == 14, "erasing trail pheromones");
+
+        first.erasePheromone(map, PheromoneType::Food);
+        check(map[1][1].first == 0 && map[1][1].second == 0, "erasing food pheromones");
+
     }
 
     void testUpdatesAndTermination() {
@@ -187,14 +195,14 @@ namespace {
         world.foodMap[4][4] = 1;
         world.ants.emplace_back(5, world.homeCoordinates);
         world.ants.back().carryingFood = true;
-        world.updateWorld();
+        world.afterAntUpdate();
         check(world.score == 1 && !world.ants.back().carryingFood,
               "food delivered home scores once");
 
         world.ants.back().position = {2, 2};
         world.ants.back().carryingFood = true;
         world.ants.back().energy = 0;
-        world.updateWorld();
+        world.afterAntUpdate();
         check(world.ants.empty(), "exhausted ant is removed");
         check(world.foodMap[2][2] == 1, "exhausted ant drops carried food");
         check(world.isGameOver(), "no ants ends game");

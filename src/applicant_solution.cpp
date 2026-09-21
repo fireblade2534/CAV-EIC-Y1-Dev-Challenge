@@ -4,13 +4,8 @@
 
 #include "../include/antworld.h"
 
-void AntWorld::beforeAntUpdate() {
 
-}
 
-void AntWorld::afterAntUpdate() {
-
-}
 
 /** @brief this is where you as the applicant will make use of the above functions to develop your solution.
  * here are some existing examples of how calling these functions works to help get you started!

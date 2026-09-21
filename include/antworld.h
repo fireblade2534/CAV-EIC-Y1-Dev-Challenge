@@ -65,9 +65,8 @@ public:
 
     void switchTo(AntState nextState, AntWorld* world);
 
-    void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
-
-    void erasePheromone(PheromoneTemplate &pheromoneMap);
+    void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int strength = 10);
+    void erasePheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
     int energy{0};
 
@@ -77,8 +76,6 @@ public:
 
     int foodRadius{3};
     int pheromoneRadius{5};
-    bool pheromoneDropped{false};
-    Coord pheromonePosition = Coord(-1, -1);
     bool carryingFood{false};
     AntState state{DeterminedExploration {}};
 };
