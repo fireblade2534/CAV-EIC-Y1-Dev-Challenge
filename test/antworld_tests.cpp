@@ -180,6 +180,13 @@ namespace {
 
         updatePheromones(map);
         check(map[1][1].first == 8 && map[1][1].second == 14, "updating pheromones causes strength decay on both channels");
+
+        first.erasePheromone(map, PheromoneType::Trail);
+        check(map[1][1].first == 0 && map[1][1].second == 14, "erasing trail pheromones");
+
+        first.erasePheromone(map, PheromoneType::Food);
+        check(map[1][1].first == 0 && map[1][1].second == 0, "erasing food pheromones");
+
     }
 
     void testUpdatesAndTermination() {

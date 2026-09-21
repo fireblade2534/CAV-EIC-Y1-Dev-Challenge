@@ -63,8 +63,7 @@ public:
     void switchTo(AntState nextState, AntWorld* world);
 
     void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int strength = 10);
-
-    void erasePheromone(PheromoneTemplate &pheromoneMap);
+    void erasePheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
     int energy{0};
 

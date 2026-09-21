@@ -115,3 +115,20 @@ void Ant::dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int
         break;
     }
 }
+
+/** @brief erase a pheromone at the ant's current location
+ *
+ * @param pheromoneMap pheromone layer of world map
+ */
+void Ant::erasePheromone(PheromoneTemplate &pheromoneMap, PheromoneType type) {
+
+
+    switch (type) {
+    case PheromoneType::Trail:
+        pheromoneMap[this->position.first][this->position.second].first = 0;
+        break;
+    case PheromoneType::Food:
+        pheromoneMap[this->position.first][this->position.second].second = 0;
+        break;
+    }
+}
