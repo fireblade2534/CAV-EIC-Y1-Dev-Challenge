@@ -95,41 +95,23 @@ Coord Ant::move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap) {
     return this->position;
 }
 
-/** @brief removes existing pheromone and drops one at the ant's current location
+/** @brief drops a pheromone at the ant's current location
  *
  * @param pheromoneMap pheromone layer of world map
  */
-void Ant::dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type) {
-    if (this->pheromoneDropped) {
-        erasePheromone(pheromoneMap);
-    }
+void Ant::dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int strength) {
 
-    std::pair<int, int> drop;
 
     switch (type) {
     case PheromoneType::Trail:
-        drop.first = 1;
-        drop.second = 0;
+        if (pheromoneMap[this->position.first][this->position.second].first < strength) {
+            pheromoneMap[this->position.first][this->position.second].first = strength;
+        }
         break;
     case PheromoneType::Food:
-        drop.first = 0;
-        drop.second = 1;
+        if (pheromoneMap[this->position.first][this->position.second].second < strength) {
+            pheromoneMap[this->position.first][this->position.second].second = strength;
+        }
         break;
-    }
-
-    pheromoneMap[this->position.first][this->position.second] = drop;
-    this->pheromonePosition = this->position;
-    this->pheromoneDropped = true;
-}
-
-/** @brief removes ant's existing pheromone
- *
-* @param pheromoneMap pheromone layer of world map
- */
-void Ant::erasePheromone(PheromoneTemplate &pheromoneMap) {
-    if (this->pheromoneDropped) {
-        pheromoneMap[this->pheromonePosition.first][this->pheromonePosition.second] = std::pair{0, 0};
-        this->pheromonePosition = Coord(-1, -1);
-        this->pheromoneDropped = false;
     }
 }

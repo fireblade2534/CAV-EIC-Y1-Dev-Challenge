@@ -140,6 +140,20 @@ inline int calculatePathCost(
     return cost;
 }
 
+inline void updatePheromones(PheromoneTemplate &pheromoneMap) {
+    for (int i = 0; i < pheromoneMap.size(); ++i) {
+        for (int j = 0; j < pheromoneMap[0].size();++j) {
+            
+            // Reduce the strength of pheromones over time
+            if (pheromoneMap[i][j].first != 0)
+                pheromoneMap[i][j].first -= 1;
+
+            if (pheromoneMap[i][j].second != 0)
+                pheromoneMap[i][j].second -= 1;
+        }
+    }
+}
+
 inline MapTemplate generateWorldMap(int mapSize_x, int mapSize_y, std::mt19937 &rng) {
     MapTemplate map(mapSize_x, std::vector<int>(mapSize_y));
 

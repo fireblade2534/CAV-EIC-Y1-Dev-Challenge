@@ -85,6 +85,8 @@ bool AntWorld::worldStep() {
     // Performs anything that needs to be done before the ants update
     this->beforeAntUpdate();
 
+    updatePheromones(this->pheromoneMap);
+
     // Performs all ant actions
     for (Ant& ant : ants) {
         std::visit([&ant, this](auto& current) {
@@ -95,14 +97,15 @@ bool AntWorld::worldStep() {
     // Performs anything that needs to be done after the ants update
     this->afterAntUpdate();
 
-    // updates score and cleans ants
-    this->updateWorld();
-
     // checks game over state
     return this->isGameOver();
 }
 
-void AntWorld::updateWorld() {
+void AntWorld::beforeAntUpdate() {
+    
+}
+
+void AntWorld::afterAntUpdate() {
     for (auto it = this->ants.begin(); it != this->ants.end();) {
         // check if any ants are at the home coordinate, with food
         // if so, increase point count
@@ -128,6 +131,7 @@ bool AntWorld::isGameOver() {
     if (this->ants.empty()) {
         return true;
     }
+
 
     // if there is no remaining food, congrats, game over
     if (not hasFood(foodMap)) {
