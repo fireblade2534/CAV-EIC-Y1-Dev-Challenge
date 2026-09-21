@@ -8,6 +8,14 @@ void DeterminedExploration::onChangeTo(Ant &ant, AntWorld *world) {
 
     this->explorePath =
         shortestPath(world->terrainMap, ant.position, ant.exploreDirection);
+    if (this->explorePath.empty()) {
+        #ifdef DEBUG_MOVEMENT
+            printf("shortest path returned empty list, switching to random exploration\n");
+        #endif
+
+        ant.switchTo(RandomExploration{}, world);
+        return;
+    }
     this->explorePath.erase(this->explorePath.begin());
     this->currentStep = 0;
 }
@@ -52,6 +60,15 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         // compute new path to new direction
         this->explorePath =
             shortestPath(world->terrainMap, ant.position, ant.exploreDirection);
+        if (this->explorePath.empty()) {
+            #ifdef DEBUG_MOVEMENT
+                printf("shortest path returned empty list, switching to random exploration\n");
+            #endif
+
+            ant.switchTo(RandomExploration{}, world);
+            return;
+        }
+
         this->explorePath.erase(this->explorePath.begin());
         this->currentStep = 0;
     }
