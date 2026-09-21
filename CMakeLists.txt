@@ -11,15 +11,26 @@ set(FRAMEWORK_SOURCES
         src/useable_functions.cpp
 )
 
+set(STATE_SOURCES
+    src/exploration.cpp
+)
+
 add_executable(dev_challenge
         src/main.cpp
         src/applicant_solution.cpp
         ${FRAMEWORK_SOURCES}
+        ${STATE_SOURCES}
 )
 
 target_include_directories(dev_challenge PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+option( "Debug option to print stack on every instruction." OFF)
+
+if (CAV_DEBUG_MOVEMENT)
+    target_compile_definitions(dev_challenge PUBLIC DEBUG_MOVEMENT)
+endif()
 
 if (MSVC)
     target_compile_options(dev_challenge PRIVATE /W4)
@@ -34,6 +45,7 @@ if (BUILD_TESTING)
             test/antworld_tests.cpp
             src/applicant_solution.cpp
             ${FRAMEWORK_SOURCES}
+            ${STATE_SOURCES}
     )
 
     target_include_directories(antworld_tests PRIVATE

@@ -1,16 +1,16 @@
 #include "../include/antworld.h"
-#include <vector>
-#include <random>
 #include <algorithm>
 #include <iostream>
+#include <random>
+#include <vector>
 
 //
 // Created by dusan on 9/4/26.
 //
 
-void FoundFood::onChangeTo(Ant& ant, AntWorld* world) {}
-void FoundFood::onChangeFrom(Ant& ant, AntWorld* world) {}
-void FoundFood::onTick(Ant &ant, AntWorld* world) {}
+void FoundFood::onChangeTo(Ant &ant, AntWorld *world) {}
+void FoundFood::onChangeFrom(Ant &ant, AntWorld *world) {}
+void FoundFood::onTick(Ant &ant, AntWorld *world) {}
 
 void ReturningToHub::onChangeTo(Ant& ant, AntWorld* world) {}
 void ReturningToHub::onChangeFrom(Ant& ant, AntWorld* world) {}
@@ -19,14 +19,6 @@ void ReturningToHub::onTick(Ant &ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onChangeTo(Ant& ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onChangeFrom(Ant& ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld* world) {}
-
-void DeterminedExploration::onChangeTo(Ant& ant, AntWorld* world) {}
-void DeterminedExploration::onChangeFrom(Ant& ant, AntWorld* world) {}
-void DeterminedExploration::onTick(Ant &ant, AntWorld* world) {}
-
-void RandomExploration::onChangeTo(Ant& ant, AntWorld* world) {}
-void RandomExploration::onChangeFrom(Ant& ant, AntWorld* world) {}
-void RandomExploration::onTick(Ant &ant, AntWorld* world) {}
 
 Ant::Ant(int initEnergy, Coord homeCoordinates) {
     // assign initial energy
@@ -37,7 +29,8 @@ Ant::Ant(int initEnergy, Coord homeCoordinates) {
     this->homeCoord = homeCoordinates;
 }
 
-AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount) : rng(seed) {
+AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
+    : rng(seed) {
     // Generate the various world map layers
     this->terrainMap = generateWorldMap(mapSize_x, mapSize_y, this->rng);
     // come back to this
@@ -55,30 +48,66 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount) : 
     // initialize all the ants
     for (int i = 0; i < antCount; ++i) {
         // and initial energy for each ant
-        int initialEnergy = std::uniform_int_distribution<int>(int(mapSize_x * mapSize_y * 0.2),
-                                                               int(mapSize_x * mapSize_y * 0.4))(rng);
+        int initialEnergy = std::uniform_int_distribution<int>(
+            int(mapSize_x * mapSize_y * 0.2),
+            int(mapSize_x * mapSize_y * 0.4))(rng);
         std::cout << initialEnergy << std::endl;
         this->ants.emplace_back(initialEnergy, this->homeCoordinates);
+    }
 
+    // assign general exploration direction for the ants
+    const int cx = mapSize_x / 2;
+    const int cy = mapSize_y / 2;
+
+    this->exploreDirections = {{0, 0},
+                               {0, cy},
+                               {0, mapSize_y - 1},
+                               {cx, 0},
+                               {cx, mapSize_y - 1},
+                               {mapSize_x - 1, 0},
+                               {mapSize_x - 1, cy},
+                               {mapSize_x - 1, mapSize_y - 1}};
+    int currentDir = 0;
+    for (auto &ant : ants) {
+        ant.exploreDirection = this->exploreDirections[currentDir];
+        currentDir = (currentDir + 1) % this->exploreDirections.size();
+    }
+
+    // initialize determined exploration setup
+    for (auto &ant: ants) {
+        std::visit(
+            [&ant, this](auto &current) { current.onChangeTo(ant, this); },
+            ant.state);
     }
 
     this->score = 0;
 }
 
-void Ant::switchTo(AntState nextState, AntWorld* world) {
+Coord AntWorld::getNewExploreDirection(Coord oldDirection) {
+    int newDir = this->exploreDirDist(this->rng);
+    printf("newDir: %d\n", newDir);
+
+    if (this->exploreDirections[newDir] == oldDirection) {
+        newDir = (newDir + 1) % this->exploreDirections.size();
+    }
+
+    return this->exploreDirections[newDir];
+}
+
+void Ant::switchTo(AntState nextState, AntWorld *world) {
     if (nextState.index() == state.index()) {
         return;
     }
 
-    std::visit([this, world](auto& current) {
-        current.onChangeFrom(*this, world);
-    }, state);
+    std::visit(
+        [this, world](auto &current) { current.onChangeFrom(*this, world); },
+        state);
 
     state = nextState;
 
-    std::visit([this, world](auto& current) {
-        current.onChangeTo(*this, world);
-    }, state);
+    std::visit(
+        [this, world](auto &current) { current.onChangeTo(*this, world); },
+        state);
 }
 
 bool AntWorld::worldStep() {
@@ -86,12 +115,11 @@ bool AntWorld::worldStep() {
     this->beforeAntUpdate();
 
     // Performs all ant actions
-    for (Ant& ant : ants) {
-        std::visit([&ant, this](auto& current) {
-            current.onTick(ant, this);
-        }, ant.state);
+    for (Ant &ant : ants) {
+        std::visit([&ant, this](auto &current) { current.onTick(ant, this); },
+                   ant.state);
     }
-    
+
     // Performs anything that needs to be done after the ants update
     this->afterAntUpdate();
 
