@@ -73,7 +73,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
         currentDir = (currentDir + 1) % this->exploreDirections.size();
     }
 
-    // initial random exploration setup
+    // initialize determined exploration setup
     for (auto &ant: ants) {
         std::visit(
             [&ant, this](auto &current) { current.onChangeTo(ant, this); },
