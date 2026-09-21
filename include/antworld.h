@@ -31,6 +31,9 @@ struct FollowingPheromoneTrail {
 };
 
 struct DeterminedExploration {
+    std::vector<Coord> explorePath;
+    int currentStep = -1;
+
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
@@ -70,6 +73,7 @@ public:
 
     Coord homeCoord = Coord(-1, -1);
     Coord position = Coord(-1, -1);
+    Coord exploreDirection = Coord(-1, -1);
 
     int foodRadius{3};
     int pheromoneRadius{5};
@@ -93,16 +97,20 @@ public:
 
     bool isGameOver();
 
+    Coord getNewExploreDirection(Coord oldDirection);
+
     MapTemplate terrainMap;
     MapTemplate foodMap;
     PheromoneTemplate pheromoneMap;
 
     std::vector<Ant> ants = {};
+    std::vector<Coord> exploreDirections;
     Coord homeCoordinates = Coord(-1, -1);
 
     int score = 0;
 
 private:
+    std::uniform_int_distribution<int> exploreDirDist{0, 7};
     std::mt19937 rng;
 };
 
