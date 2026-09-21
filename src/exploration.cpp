@@ -18,6 +18,9 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     // if sees food
     auto food = ant.foodScan(world->foodMap);
     if (!food.empty()) {
+#ifdef DEBUG_MOVEMENT
+        printf("found food; switch to FoundFood state\n");
+#endif
         ant.switchTo(FoundFood{}, world);
         return;
     }
@@ -26,6 +29,9 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     std::vector<Coord> foodPheromone =
         ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
     if (!foodPheromone.empty()) {
+#ifdef DEBUG_MOVEMENT
+        printf("found food pheromone; switch to FollowTraill state\n");
+#endif
         ant.switchTo(FollowingPheromoneTrail{}, world);
         return;
     }
@@ -36,6 +42,9 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         before == ant.move(world->terrainMap,
                            this->explorePath[this->currentStep++],
                            world->foodMap)) {
+#ifdef DEBUG_MOVEMENT
+        printf("can't continue, get new explore direction\n");
+#endif
         // compute new general direction to explore
         ant.exploreDirection =
             world->getNewExploreDirection(ant.exploreDirection);
@@ -46,6 +55,12 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         this->explorePath.erase(this->explorePath.begin());
         this->currentStep = 0;
     }
+#ifdef DEBUG_MOVEMENT
+    else {
+        printf("ant moved from (%d, %d) to (%d, %d)\n", before.first,
+               before.second, ant.position.first, ant.position.second);
+    }
+#endif
 
     /*
        TODO: random exploration here
