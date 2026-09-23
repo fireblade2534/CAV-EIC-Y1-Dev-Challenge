@@ -58,9 +58,10 @@ public:
     Ant(int initEnergy, Coord homeCoordinates);
 
     std::vector<Coord> foodScan(MapTemplate &foodMap);
-
     std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
-    std::vector<Ant&> antScan(AntWorld &antWorld, PheromoneType type);
+    std::vector<Ant*> antScan(AntWorld &antWorld);
+
+    Coord foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods);
 
     Coord move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap);
 
