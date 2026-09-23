@@ -56,6 +56,26 @@ std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, Pheromone
     return pheromoneLocations;
 }
 
+/** @brief Checks all ants within pheromoneRadius blocks of itself.
+ *
+ * @param antWorld the world
+ *
+ * @return vector of ants in that range
+ */
+std::vector<Ant&> Ant::antScan(AntWorld &antWorld, PheromoneType type) {
+    std::vector<Ant&> ants = {};
+    for (auto it = antWorld.ants.begin(); it != antWorld.ants.end();) {
+        int distance = getManhattanDistance(it->position, this->position);
+        if (std::abs(it->position.first - this->position.first) <= antRadius && std::abs(it->position.second - this->position.second) <= antRadius) {
+            ants.push_back(*it);
+        }
+    }
+
+    return ants;
+}
+
+
+
 /** @brief This function moves the ant to the provided step.
  * The step can only be one unit in the cardinal directions. The ant will step if it has the energy to do so. If food exists at the step, it will pick it up.
  *
