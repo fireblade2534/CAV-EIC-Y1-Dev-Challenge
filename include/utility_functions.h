@@ -22,6 +22,10 @@ struct Node {
     }
 };
 
+inline int getManhattanDistance(const Coord one, const Coord two) {
+    return std::abs(one.first - two.first) + std::abs(one.second - two.second);
+}
+
 inline int getMoveCost(const std::vector<std::vector<int> > &grid, int currentRow, int currentColumn, int nextRow, int nextColumn) {
     if (std::abs(currentRow - nextRow) + std::abs(currentColumn - nextColumn) != 1) {
         return INFINITY;
