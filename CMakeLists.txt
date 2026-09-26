@@ -26,10 +26,20 @@ target_include_directories(dev_challenge PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-option( "Debug option to print stack on every instruction." OFF)
+option(CAV_DEBUG_MOVEMENT "Debug option to print stack on every instruction." OFF)
+option(CAV_DEBUG_EXPLORATION "Debug option to print which action was chosen." OFF)
+option(CAV_DEBUG_STATE_TRANSITION "Debug option to log state transitions." OFF)
 
 if (CAV_DEBUG_MOVEMENT)
     target_compile_definitions(dev_challenge PUBLIC DEBUG_MOVEMENT)
+endif()
+
+if (CAV_DEBUG_EXPLORATION)
+    target_compile_definitions(dev_challenge PUBLIC DEBUG_EXPLORATION)
+endif()
+
+if (CAV_DEBUG_STATE_TRANSITION)
+    target_compile_definitions(dev_challenge PUBLIC DEBUG_STATE_TRANSITION)
 endif()
 
 if (MSVC)
