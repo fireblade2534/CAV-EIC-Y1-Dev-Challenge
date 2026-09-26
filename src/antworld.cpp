@@ -20,13 +20,15 @@ void FollowingPheromoneTrail::onChangeTo(Ant& ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onChangeFrom(Ant& ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld* world) {}
 
-Ant::Ant(int initEnergy, Coord homeCoordinates) {
+Ant::Ant(int initEnergy, Coord homeCoordinates, double epsilon, int stickiness) {
     // assign initial energy
     this->energy = initEnergy;
 
     // assign positions
     this->position = homeCoordinates;
     this->homeCoord = homeCoordinates;
+    this->epsilon = epsilon;
+    this->stickiness = stickiness;
 }
 
 AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
@@ -85,8 +87,6 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
 
 Coord AntWorld::getNewExploreDirection(Coord oldDirection) {
     int newDir = this->exploreDirDist(this->rng);
-    printf("newDir: %d\n", newDir);
-
     if (this->exploreDirections[newDir] == oldDirection) {
         newDir = (newDir + 1) % this->exploreDirections.size();
     }
