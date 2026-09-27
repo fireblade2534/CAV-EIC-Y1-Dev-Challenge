@@ -56,6 +56,75 @@ std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, Pheromone
     return pheromoneLocations;
 }
 
+/** @brief Checks all ants within pheromoneRadius blocks of itself.
+ *
+ * @param antWorld the world
+ *
+ * @return vector of ants in that range
+ */
+std::vector<Ant*> Ant::antScan(AntWorld &antWorld) {
+    std::vector<Ant*> ants = {};
+    for (Ant& ant : antWorld.ants) {
+        if (&ant == this) {
+            continue;
+        }
+            
+        if (std::abs(ant.position.first - this->position.first) <= antRadius && std::abs(ant.position.second - this->position.second) <= antRadius) {
+            ants.push_back(&ant);
+        }
+    }
+
+    return ants;
+}
+
+/** @brief Chooses which food to go to
+ *
+ * @param ants the vector of ants in range
+ * @param foods the vector of foods in range
+ *
+ * @return The target food for the ant. Will be -1, -1 if the ant shouldn't go to a food
+ * 
+ */
+Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods) {
+    if (foods.empty()) {
+        return {-1, -1};
+    }
+
+    std::sort(foods.begin(), foods.end(),
+        [this](const Coord& a, const Coord& b) {
+            int distanceA = getManhattanDistance(this->position, a);
+            int distanceB = getManhattanDistance(this->position, b);
+
+            return distanceA < distanceB;
+        }
+    );
+
+    for (const Coord& food : foods) {
+        int selfDistance = getManhattanDistance(this->position, food);
+
+        bool selfClosest = true;
+
+        for (const Ant* otherAnt : ants) {
+            if (std::abs(otherAnt->position.first - food.first) > otherAnt->foodRadius || std::abs(otherAnt->position.second - food.second) > otherAnt->foodRadius) {
+                continue;
+            }
+
+            int theirDistance = getManhattanDistance(otherAnt->position, food);
+
+            if (theirDistance < selfDistance) {
+                selfClosest = false;
+                break;
+            }
+        }
+
+        if (selfClosest) {
+            return food;
+        }
+    }
+
+    return {-1, -1};
+}
+
 /** @brief This function moves the ant to the provided step.
  * The step can only be one unit in the cardinal directions. The ant will step if it has the energy to do so. If food exists at the step, it will pick it up.
  *

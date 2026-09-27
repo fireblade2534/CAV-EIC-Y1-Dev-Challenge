@@ -64,8 +64,10 @@ public:
     Ant(int initEnergy, Coord homeCoordinates, double epsilon = 0.2, int stickiness = 8);
 
     std::vector<Coord> foodScan(MapTemplate &foodMap);
-
     std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
+    std::vector<Ant*> antScan(AntWorld &antWorld);
+
+    Coord foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods);
 
     Coord move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap);
 
@@ -82,6 +84,7 @@ public:
 
     int foodRadius{3};
     int pheromoneRadius{5};
+    int antRadius{5};
     bool carryingFood{false};
     AntState state{DeterminedExploration {}};
 
