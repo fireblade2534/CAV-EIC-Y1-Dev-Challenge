@@ -33,13 +33,19 @@ struct FollowingPheromoneTrail {
 struct DeterminedExploration {
     std::vector<Coord> explorePath;
     int currentStep = -1;
+    std::bernoulli_distribution explore;
 
+    void setExploreDirection(Coord direction, Ant&ant, AntWorld* world);
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
+    int chooseAction(Ant& ant, AntWorld* world);
 };
 
 struct RandomExploration {
+    int dr[4] = {1, -1, 0, 0};
+    int dc[4] = {0, 0, 1, -1};
+
     void onChangeTo(Ant &ant, AntWorld *world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
@@ -55,7 +61,7 @@ using AntState = std::variant<
 
 class Ant {
 public:
-    Ant(int initEnergy, Coord homeCoordinates);
+    Ant(int initEnergy, Coord homeCoordinates, double epsilon = 0.2, int stickiness = 8);
 
     std::vector<Coord> foodScan(MapTemplate &foodMap);
 
@@ -78,6 +84,20 @@ public:
     int pheromoneRadius{5};
     bool carryingFood{false};
     AntState state{DeterminedExploration {}};
+
+    // exploration related fields
+    double epsilon;
+
+    /* actionIndex can either be -1 for when ant does not move, 0 for when ant
+     * moves according to determined exploration and 1 when ant moves according
+     * to random exploration */
+    int actionIndex = 0;
+
+    std::vector<double> actionValueTable = {0.0, 0.0};
+    std::vector<int> actionCountTable = {0, 0};
+    std::vector<int> optimalActions;
+    int randomActionCount = 0;
+    int stickiness = stickiness;
 };
 
 class AntWorld {
@@ -106,9 +126,13 @@ public:
 
     int score = 0;
 
+    // internal exploration score system
+    int foodScore = 3;
+    int pheromoneScore = 2;
+    std::mt19937 rng;
+
 private:
     std::uniform_int_distribution<int> exploreDirDist{0, 7};
-    std::mt19937 rng;
 };
 
 
