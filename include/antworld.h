@@ -13,6 +13,8 @@ class Ant;
 class AntWorld;
 
 struct FoundFood {
+    std::vector<Coord> path;
+    int currentStep = 0;
     Coord food;
     
     void onChangeTo(Ant& ant, AntWorld* world);
@@ -21,6 +23,9 @@ struct FoundFood {
 };
 
 struct ReturningToHub {
+    std::vector<Coord> path;
+    int currentStep = 0;
+
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
