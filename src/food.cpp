@@ -7,9 +7,17 @@ void ReturningToHub::onChangeTo(Ant& ant, AntWorld* world) {
 void ReturningToHub::onChangeFrom(Ant& ant, AntWorld* world) {}
 
 void ReturningToHub::onTick(Ant &ant, AntWorld* world) {
-    if (!this->pheromoneTrail) {
+    if (this->pheromoneTrail) {
+        ant.dropPheromone(world->pheromoneMap, PheromoneType::Food);
+    } else {
         std::vector<Coord> foods = ant.foodScan(world->foodMap);
-        std::vector<Coord> foodPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
+        std::vector<Ant*> ants = ant.antScan(*world);
+
+        Coord foodChoice = ant.foodTarget(ants, foods);
+
+        if (foodChoice.first != -1 && foodChoice.second != -1) {
+            this->pheromoneTrail = true;
+        }
     }
 
     auto before = ant.position;
