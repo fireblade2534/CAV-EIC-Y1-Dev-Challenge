@@ -79,8 +79,16 @@ void DeterminedExploration::onChangeFrom(Ant &ant, AntWorld *world) {
 void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     // if sees food
     std::vector<Coord> foods = ant.foodScan(world->foodMap);
-    std::vector<Coord> foodPheromones =
-        ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
+    std::vector<Ant*> ants = ant.antScan(*world);
+
+    Coord foodChoice = ant.foodTarget(ants, foods);
+
+    if (foodChoice.first != -1 && foodChoice.second != -1) {
+        ant.switchTo(FoundFood{food: foodChoice}, world);
+        return;
+    }
+
+    std::vector<Coord> foodPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
 
     // calculate reward and update value table if ant actually moved
     if (ant.actionIndex != -1) {
@@ -157,6 +165,17 @@ void RandomExploration::onChangeFrom(Ant &ant, AntWorld *world) {
 }
 
 void RandomExploration::onTick(Ant &ant, AntWorld *world) {
+    
+    std::vector<Coord> foods = ant.foodScan(world->foodMap);
+    std::vector<Ant*> ants = ant.antScan(*world);
+
+    Coord foodChoice = ant.foodTarget(ants, foods);
+
+    if (foodChoice.first != -1 && foodChoice.second != -1) {
+        ant.switchTo(FoundFood{food: foodChoice}, world);
+        return;
+    }
+
     int moveDir = rand() % 4;
     Coord step = {ant.position.first + this->dr[moveDir],
                   ant.position.second + this->dc[moveDir]};

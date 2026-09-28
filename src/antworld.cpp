@@ -9,11 +9,6 @@
 //
 
 
-
-void ReturningToHub::onChangeTo(Ant& ant, AntWorld* world) {}
-void ReturningToHub::onChangeFrom(Ant& ant, AntWorld* world) {}
-void ReturningToHub::onTick(Ant &ant, AntWorld* world) {}
-
 void FollowingPheromoneTrail::onChangeTo(Ant& ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onChangeFrom(Ant& ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld* world) {}

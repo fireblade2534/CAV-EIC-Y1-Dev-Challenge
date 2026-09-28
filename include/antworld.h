@@ -25,6 +25,7 @@ struct FoundFood {
 struct ReturningToHub {
     std::vector<Coord> path;
     int currentStep = 0;
+    bool pheromoneTrail = false;
 
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
