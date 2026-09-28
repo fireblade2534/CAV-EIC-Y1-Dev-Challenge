@@ -8,9 +8,7 @@
 // Created by dusan on 9/4/26.
 //
 
-void FoundFood::onChangeTo(Ant &ant, AntWorld *world) {}
-void FoundFood::onChangeFrom(Ant &ant, AntWorld *world) {}
-void FoundFood::onTick(Ant &ant, AntWorld *world) {}
+
 
 void ReturningToHub::onChangeTo(Ant& ant, AntWorld* world) {}
 void ReturningToHub::onChangeFrom(Ant& ant, AntWorld* world) {}

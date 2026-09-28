@@ -13,6 +13,8 @@ class Ant;
 class AntWorld;
 
 struct FoundFood {
+    Coord food;
+    
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
@@ -24,7 +26,7 @@ struct ReturningToHub {
     void onTick(Ant& ant, AntWorld* world);
 };
 
-struct FollowingPheromoneTrail {
+struct FollowingPheromoneTrail {    
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
