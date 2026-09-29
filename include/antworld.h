@@ -51,9 +51,6 @@ struct DeterminedExploration {
 };
 
 struct RandomExploration {
-    int dr[4] = {1, -1, 0, 0};
-    int dc[4] = {0, 0, 1, -1};
-
     void onChangeTo(Ant &ant, AntWorld *world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
@@ -96,6 +93,11 @@ public:
 
     void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int strength = 10);
     void erasePheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
+
+    // self-destruct option since ant cannot move anymore
+    void combust();
+
+    bool tryLegalMove(MapTemplate& terrainMap, MapTemplate& foodMap);
 
     int energy{0};
 

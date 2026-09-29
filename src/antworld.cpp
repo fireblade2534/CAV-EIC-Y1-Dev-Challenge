@@ -108,6 +108,32 @@ void Ant::switchTo(AntState nextState, AntWorld *world) {
         state);
 }
 
+bool Ant::tryLegalMove(MapTemplate &terrainMap, MapTemplate &foodMap) {
+    static int dr[4] = {1, -1, 0, 0};
+    static int dc[4] = {0, 0, 1, -1};
+
+    for (int i = 0; i < 4; i++) {
+        if (this->position.first + dr[i] < 0 ||
+            (size_t)this->position.first + dr[i] >= terrainMap.size() ||
+            this->position.second + dc[i] < 0 ||
+            (size_t)this->position.second + dc[i] >= terrainMap[0].size()) {
+            continue;
+        }
+
+        Coord step{this->position.first + dr[i], this->position.second + dc[i]};
+
+        if (this->position != this->move(terrainMap, step, foodMap)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Ant::combust() {
+    this->energy = 0;
+}
+
 bool AntWorld::worldStep() {
     // Performs anything that needs to be done before the ants update
     this->beforeAntUpdate();
