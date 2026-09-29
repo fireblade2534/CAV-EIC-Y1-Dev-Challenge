@@ -13,6 +13,7 @@ set(FRAMEWORK_SOURCES
 
 set(STATE_SOURCES
     src/exploration.cpp
+    src/food.cpp
 )
 
 add_executable(dev_challenge

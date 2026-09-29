@@ -13,18 +13,26 @@ class Ant;
 class AntWorld;
 
 struct FoundFood {
+    std::vector<Coord> path;
+    int currentStep = 0;
+    Coord food;
+    
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
 struct ReturningToHub {
+    std::vector<Coord> path;
+    int currentStep = 0;
+    bool pheromoneTrail = false;
+
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
-struct FollowingPheromoneTrail {
+struct FollowingPheromoneTrail {    
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
