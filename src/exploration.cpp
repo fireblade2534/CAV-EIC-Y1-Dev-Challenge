@@ -97,7 +97,6 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         ant.actionCountTable[ant.actionIndex] = k;
     }
 
-    /*
     if (!foods.empty()) {
 #ifdef DEBUG_STATE_TRANSITION
         printf("found food; switch to FoundFood state\n");
@@ -113,7 +112,6 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         ant.switchTo(FollowingPheromoneTrail{}, world);
         return;
     }
-    */
 
     /* choose whether to transition to random or keep on doing determined
      * exploration. */
