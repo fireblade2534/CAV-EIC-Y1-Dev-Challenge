@@ -77,17 +77,8 @@ void DeterminedExploration::onChangeFrom(Ant &ant, AntWorld *world) {
 }
 
 void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
-    // if sees food
     std::vector<Coord> foods = ant.foodScan(world->foodMap);
     std::vector<Ant*> ants = ant.antScan(*world);
-
-    Coord foodChoice = ant.foodTarget(ants, foods);
-
-    if (foodChoice.first != -1 && foodChoice.second != -1) {
-        ant.switchTo(FoundFood{food: foodChoice}, world);
-        return;
-    }
-
     std::vector<Coord> foodPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
 
     // calculate reward and update value table if ant actually moved
@@ -105,17 +96,18 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         ant.actionCountTable[ant.actionIndex] = k;
     }
 
-    if (!foods.empty()) {
+    Coord foodChoice = ant.foodTarget(ants, foods);
+    if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
-        printf("found food; switch to FoundFood state\n");
+        logStateTransition("DeterminedExploration", "FoundFood", "found food");
 #endif
-        ant.switchTo(FoundFood{}, world);
+        ant.switchTo(FoundFood{.path = {}, .food = foodChoice}, world);
         return;
     }
     // if detects a food pheromone
     else if (!foodPheromones.empty()) {
 #ifdef DEBUG_STATE_TRANSITION
-        printf("found food pheromone; switch to FollowTraill state\n");
+        logStateTransition("DeterminedExploration", "FollowingPheromoneTrail", "found pheromone trail");
 #endif
         ant.switchTo(FollowingPheromoneTrail{}, world);
         return;
@@ -163,17 +155,7 @@ void RandomExploration::onChangeFrom(Ant &ant, AntWorld *world) {
 }
 
 void RandomExploration::onTick(Ant &ant, AntWorld *world) {
-    
-    std::vector<Coord> foods = ant.foodScan(world->foodMap);
-    std::vector<Ant*> ants = ant.antScan(*world);
-
-    Coord foodChoice = ant.foodTarget(ants, foods);
-
-    if (foodChoice.first != -1 && foodChoice.second != -1) {
-        ant.switchTo(FoundFood{food: foodChoice}, world);
-        return;
-    }
-
+    /* the function doesn't need any food / pheromone check because it is guaranteed that the checks have already happened (and the rewards have been updated) before state transitions to random exploration. */
     int moveDir = rand() % 4;
     Coord step = {ant.position.first + this->dr[moveDir],
                   ant.position.second + this->dc[moveDir]};
@@ -218,5 +200,8 @@ void RandomExploration::onTick(Ant &ant, AntWorld *world) {
     /* regardless of what happens, always transition back to
      * DeterminedExploration for reward update, which includes checking for food
      * and pheromone and transitioning to the appropriate state */
+#ifdef DEBUG_STATE_TRANSITION
+    logStateTransition("RandomExploration", "DeterminedExploration", "finished random move");
+#endif
     ant.switchTo(DeterminedExploration{}, world);
 }

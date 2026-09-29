@@ -40,6 +40,11 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     std::uniform_int_distribution<int> colDist(0, mapSize_y - 1);
     this->homeCoordinates = {rowDist(rng), colDist(rng)};
 
+#ifdef DEBUG_STATE_TRANSITION
+    printf("HOME COORD: (%d, %d)\n", this->homeCoordinates.first,
+           this->homeCoordinates.second);
+#endif
+
     // initialize all the ants
     for (int i = 0; i < antCount; ++i) {
         // and initial energy for each ant

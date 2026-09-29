@@ -67,6 +67,14 @@ using AntState = std::variant<
     RandomExploration
 >;
 
+#ifdef DEBUG_STATE_TRANSITION
+inline void logStateTransition(std::string from, std::string to,
+                               std::string reason) {
+    printf("Transition: %s => %s | Reason: '%s'\n", from.c_str(), to.c_str(),
+           reason.c_str());
+}
+#endif
+
 class Ant {
 public:
     Ant(int initEnergy, Coord homeCoordinates, double epsilon = 0.2, int stickiness = 8);

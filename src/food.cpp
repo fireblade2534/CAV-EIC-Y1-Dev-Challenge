@@ -1,12 +1,12 @@
 #include <antworld.h>
 
 void ReturningToHub::onChangeTo(Ant& ant, AntWorld* world) {
-    this->path = shortestPath(world->terrainMap, ant.position, world->homeCoordinates);
+    this->path = shortestPath(world->terrainMap, ant.position, ant.homeCoord);
 }
 
 void ReturningToHub::onChangeFrom(Ant& ant, AntWorld* world) {}
 
-void ReturningToHub::onTick(Ant &ant, AntWorld* world) {
+void ReturningToHub::onTick(Ant& ant, AntWorld* world) {
     if (this->pheromoneTrail) {
         ant.dropPheromone(world->pheromoneMap, PheromoneType::Food);
     } else {
@@ -21,29 +21,44 @@ void ReturningToHub::onTick(Ant &ant, AntWorld* world) {
     }
 
     auto before = ant.position;
-    if (before == ant.move(world->terrainMap, this->path[this->currentStep++], world->foodMap)) {
+    if (before == ant.move(world->terrainMap, this->path[this->currentStep++],
+                           world->foodMap)) {
+#ifdef DEBUG_STATE_TRANSITION
+        if (before == ant.homeCoord) {
+            logStateTransition("ReturningToHub", "DeterminedExploration",
+                               "reached hub");
+        } else {
+            logStateTransition("ReturningToHub", "DeterminedExploration",
+                               "out of energy");
+        }
+#endif
         ant.switchTo(DeterminedExploration{}, world);
         return;
     }
 }
 
-
-void FoundFood::onChangeTo(Ant &ant, AntWorld *world) {
+void FoundFood::onChangeTo(Ant& ant, AntWorld* world) {
     this->path = shortestPath(world->terrainMap, ant.position, this->food);
 }
 
-void FoundFood::onChangeFrom(Ant &ant, AntWorld *world) {}
+void FoundFood::onChangeFrom(Ant& ant, AntWorld* world) {}
 
-void FoundFood::onTick(Ant &ant, AntWorld *world) {
-
+void FoundFood::onTick(Ant& ant, AntWorld* world) {
     auto before = ant.position;
-    if (before == ant.move(world->terrainMap, this->path[this->currentStep++], world->foodMap)) {
-        ant.switchTo(DeterminedExploration{}, world);
-        return;
-    }
-
-    if (ant.position == this->food) {
-        ant.switchTo(ReturningToHub{}, world);
-        return;
+    if (before == ant.move(world->terrainMap, this->path[this->currentStep++],
+                           world->foodMap)) {
+        if (ant.position == this->food) {
+#ifdef DEBUG_STATE_TRANSITION
+            logStateTransition("FoundFood", "ReturningToHub", "reached food");
+#endif
+            ant.switchTo(ReturningToHub{}, world);
+            return;
+        } else {
+#ifdef DEBUG_STATE_TRANSITION
+            logStateTransition("FoundFood", "DeterminedExploration", "out of energy");
+#endif
+            ant.switchTo(DeterminedExploration{}, world);
+            return;
+        }
     }
 }

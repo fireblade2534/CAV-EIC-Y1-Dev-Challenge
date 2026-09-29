@@ -105,7 +105,11 @@ Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods) {
         bool selfClosest = true;
 
         for (const Ant* otherAnt : ants) {
-            if (std::abs(otherAnt->position.first - food.first) > otherAnt->foodRadius || std::abs(otherAnt->position.second - food.second) > otherAnt->foodRadius) {
+            // outside of the other ant's detection radius
+            if (std::abs(otherAnt->position.first - food.first) >
+                    otherAnt->foodRadius ||
+                std::abs(otherAnt->position.second - food.second) >
+                    otherAnt->foodRadius) {
                 continue;
             }
 
