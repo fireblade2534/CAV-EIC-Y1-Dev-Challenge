@@ -81,8 +81,19 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     std::vector<Ant*> ants = ant.antScan(*world);
     std::vector<Coord> foodPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
 
+    // filter out valid food that the ant can actually reach
+    std::vector<Coord> validFoods;
+    validFoods.reserve(foods.size());
+    std::copy_if(foods.begin(), foods.end(), std::back_inserter(validFoods),
+                 [&ant](Coord &food) {
+                     auto it = std::find(ant.noReachFood.begin(),
+                                         ant.noReachFood.end(), food);
+                     return it == ant.noReachFood.end();
+                 });
+
     // calculate reward and update value table if ant actually moved
     if (ant.actionIndex != -1) {
+        // reward is still based on the total food, not just valid ones
         int reward = world->foodScore * foods.size() +
                      world->pheromoneScore * foodPheromones.size();
 
@@ -96,7 +107,7 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         ant.actionCountTable[ant.actionIndex] = k;
     }
 
-    Coord foodChoice = ant.foodTarget(ants, foods);
+    Coord foodChoice = ant.foodTarget(ants, validFoods);
     if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
         logStateTransition("DeterminedExploration", "FoundFood", "found food");
@@ -117,6 +128,9 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
      * exploration. */
     ant.actionIndex = this->chooseAction(ant, world);
     if (ant.actionIndex == 1) {
+#ifdef DEBUG_STATE_TRANSITION
+        logStateTransition("DeterminedExploration", "RandomExploration", "chosen action");
+#endif
         ant.switchTo(RandomExploration{}, world);
         return;
     } else {

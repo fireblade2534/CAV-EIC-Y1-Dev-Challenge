@@ -68,10 +68,15 @@ using AntState = std::variant<
 >;
 
 #ifdef DEBUG_STATE_TRANSITION
+#include <stdarg.h>
 inline void logStateTransition(std::string from, std::string to,
-                               std::string reason) {
-    printf("Transition: %s => %s | Reason: '%s'\n", from.c_str(), to.c_str(),
-           reason.c_str());
+                               const char* reason, ...) {
+    va_list args;
+    va_start(args, reason);
+    printf("Transition: %s => %s | Reason: ", from.c_str(), to.c_str());
+    vfprintf(stdout, reason, args);
+    va_end(args);
+    printf("\n");
 }
 #endif
 
@@ -104,6 +109,9 @@ public:
     bool carryingFood{false};
     AntState state{DeterminedExploration {}};
 
+    // foods that are out of reach due to low energy
+    std::vector<Coord> noReachFood;
+
     // exploration related fields
     double epsilon;
 
@@ -121,7 +129,12 @@ public:
 
 class AntWorld {
 public:
-    AntWorld(uint32_t seed, int mapSize_x = 15, int mapSize_y = 15, int antCount = 8);
+#ifdef DEBUG_SINGLE_ANT
+#define ANTCOUNT 1
+#else
+#define ANTCOUNT 8
+#endif
+    AntWorld(uint32_t seed, int mapSize_x = 15, int mapSize_y = 15, int antCount = ANTCOUNT);
 
     bool worldStep();
 

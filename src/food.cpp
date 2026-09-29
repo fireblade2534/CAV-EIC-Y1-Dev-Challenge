@@ -41,7 +41,12 @@ void FoundFood::onChangeTo(Ant& ant, AntWorld* world) {
     this->path = shortestPath(world->terrainMap, ant.position, this->food);
 }
 
-void FoundFood::onChangeFrom(Ant& ant, AntWorld* world) {}
+void FoundFood::onChangeFrom(Ant& ant, AntWorld* world) {
+    // push food position that ant can't reach into
+    if (ant.position != this->food) {
+        ant.noReachFood.push_back(this->food);
+    }
+}
 
 void FoundFood::onTick(Ant& ant, AntWorld* world) {
     auto before = ant.position;
@@ -55,7 +60,9 @@ void FoundFood::onTick(Ant& ant, AntWorld* world) {
             return;
         } else {
 #ifdef DEBUG_STATE_TRANSITION
-            logStateTransition("FoundFood", "DeterminedExploration", "out of energy");
+            logStateTransition("FoundFood", "DeterminedExploration",
+                               "out of energy for food at (%d, %d)",
+                               this->food.first, this->food.second);
 #endif
             ant.switchTo(DeterminedExploration{}, world);
             return;
