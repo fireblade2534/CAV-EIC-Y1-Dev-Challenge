@@ -8,34 +8,59 @@ void FollowingPheromoneTrail::onChangeFrom(Ant &ant, AntWorld *world) {}
 void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
     this->foodTarget = {-1, -1};
 
-    // scan the upper half
-    for (int i = ant.position.first; i <= ant.position.first + ant.pheromoneRadius; ++i) {
-        for (int j = ant.position.second - ant.pheromoneRadius; j <= ant.position.second + ant.pheromoneRadius; ++j) {
-            if (i < 0 || i >= world->pheromoneMap.size() || j < 0 ||
-                j >= world->pheromoneMap[0].size()) {
-                continue;
-            }
+    // scan using pheromone scan function
+    auto foodTrails =
+        ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
 
-            if (world->pheromoneMap[i][j].second != 0) {
-                this->foodTarget = {i, j};
+    // everything has faded
+    if (foodTrails.empty()) {
+        ant.switchTo(DeterminedExploration{}, world);
+        return;
+    }
+
+    // sort for weakest pheromone strength first
+    sort(foodTrails.begin(), foodTrails.end(),
+         [world](const Coord &a, const Coord &b) -> bool {
+             return world->pheromoneMap[a.first][a.second].first <
+                    world->pheromoneMap[b.first][b.second].first;
+         });
+
+    auto others = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
+
+    /*
+       Decides which pheromone location to go to and compute path. the rule for
+       this is that for any location where there is another ant closer to that
+       location than itself, the current ant is going to yield and look for
+       another pheromone spot where it is the closest one. If no optimal
+       location is found, it goes for the one with the weakest pheromone
+       strength regardless. This is to avoid situations where all ants yielded
+       and no pheromones are picked up.
+    */
+    for (int i = 0; i < std::min(5, (int)foodTrails.size()); i++) {
+        auto &loc = foodTrails[i];
+
+        // if there's an ant closer, yield
+        int selfDist = getManhattanDistance(ant.position, loc);
+        bool closest = true;
+
+        for (auto &other : others) {
+            int dist = getManhattanDistance(other, loc);
+
+            if (dist < selfDist) {
+                closest = false;
+                break;
             }
+        }
+
+        if (closest) {
+            this->foodTarget = loc;
+            break;
         }
     }
 
-    // scan the lower half
-    for (int i = ant.position.first - 1;
-         i >= ant.position.first - ant.pheromoneRadius; --i) {
-        for (int j = ant.position.second - ant.pheromoneRadius;
-             j <= ant.position.second + ant.pheromoneRadius; ++j) {
-            if (i < 0 || i >= world->pheromoneMap.size() || j < 0 ||
-                j >= world->pheromoneMap[0].size()) {
-                continue;
-            }
-
-            if (world->pheromoneMap[i][j].second != 0) {
-                this->foodTarget = {i, j};
-            }
-        }
+    if (this->foodTarget.first == -1 || this->foodTarget.second == -1) {
+        // get the first regardless
+        this->foodTarget = *foodTrails.begin();
     }
 }
 
@@ -45,15 +70,6 @@ void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
    the food, transition to return home.
 */
 void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
-    /*
-       TODO: write a system to determine which food spot to go for based on food
-       pheromone and the trail pheromone of other ants nearby.
-
-       If there is another ant that is closer to the food source, chances are
-       it's going to take that and you can go find another food pheromone or go
-       explore some more. => Voronoi partition for each ant
-    */
-
     if (this->foodTarget.first == -1 || this->foodTarget.second == -1) {
         ant.switchTo(DeterminedExploration{}, world);
         return;
@@ -72,9 +88,8 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     paths.erase(paths.begin());
 
     auto before = ant.position;
-    auto after = ant.move(world->terrainMap, *paths.begin(), world->foodMap);
-
-    if (before == after && ant.energy != 0) {
+    if (before == ant.move(world->terrainMap, *paths.begin(), world->foodMap) &&
+        ant.energy != 0) {
         // cannot possibly reach the food, transition to random exploration
         // again
         ant.switchTo(DeterminedExploration{}, world);
