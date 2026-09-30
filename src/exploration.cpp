@@ -107,7 +107,9 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         ant.actionCountTable[ant.actionIndex] = k;
     }
 
-    Coord foodChoice = ant.foodTarget(ants, validFoods);
+    std::vector<Coord> trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
+
+    Coord foodChoice = ant.foodTarget(ants, validFoods, trailPheromones);
     if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
         logStateTransition("DeterminedExploration", "FoundFood",
@@ -172,6 +174,7 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
                                "no more legal move");
 #endif
             ant.combust();
+            return;
         }
     }
 #ifdef DEBUG_MOVEMENT
@@ -180,6 +183,7 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
                before.second, ant.position.first, ant.position.second);
     }
 #endif
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Trail, 2);
 }
 
 void RandomExploration::onChangeTo(Ant &ant, AntWorld *world) {}
@@ -221,6 +225,8 @@ void RandomExploration::onTick(Ant &ant, AntWorld *world) {
             return;
         }
     }
+
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Trail, 2);
 
     /* regardless of what happens, always transition back to
      * DeterminedExploration for reward update, which includes checking for food

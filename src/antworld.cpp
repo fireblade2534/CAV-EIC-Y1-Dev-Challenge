@@ -25,8 +25,8 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     // Generate the various world map layers
     this->terrainMap = generateWorldMap(mapSize_x, mapSize_y, this->rng);
     // come back to this
-    int foodCount = int(mapSize_x * mapSize_y * 0.4);
-    this->foodMap = spreadFood(mapSize_x, mapSize_y, foodCount, this->rng);
+    this->foodCount = int(mapSize_x * mapSize_y * 0.4);
+    this->foodMap = spreadFood(mapSize_x, mapSize_y, this->foodCount, this->rng);
     this->pheromoneMap = PheromoneTemplate(
         mapSize_x, std::vector<std::pair<int, int>>(mapSize_y, {0, 0}));
 

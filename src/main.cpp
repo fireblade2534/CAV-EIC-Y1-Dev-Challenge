@@ -16,7 +16,7 @@ int main() {
     // uint32_t SEED = rd();
 
     const int MAX_SIMULATION_STEP_COUNT = 1000;
-    AntWorld gameInstance = AntWorld(SEED);
+    AntWorld gameInstance = AntWorld(SEED, 15, 15);
 
     bool gameOver = false;
     int stepCount = 1;
@@ -26,7 +26,7 @@ int main() {
     }
 
     if (gameOver) {
-        printf("GAME OVER!! Total score: %d\n", gameInstance.score);
+        printf("GAME OVER!! Total score: %d/%d\n", gameInstance.score, gameInstance.foodCount);
     } else if (stepCount >= MAX_SIMULATION_STEP_COUNT) {
         printf("Game not finished. Hit maxmimum simulation step count");
     } else {

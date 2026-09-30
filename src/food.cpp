@@ -73,4 +73,6 @@ void FoundFood::onTick(Ant& ant, AntWorld* world) {
         ant.switchTo(DeterminedExploration{}, world);
         return;
     }
+
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Trail, 2);
 }

@@ -88,7 +88,7 @@ public:
     std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
     std::vector<Ant*> antScan(AntWorld &antWorld);
 
-    Coord foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods);
+    Coord foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vector<Coord> trails);
 
     Coord move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap);
 
@@ -171,6 +171,7 @@ public:
     int score = 0;
 
     // internal exploration score system
+    int foodCount;
     int foodScore = 3;
     int pheromoneScore = 2;
     std::mt19937 rng;
