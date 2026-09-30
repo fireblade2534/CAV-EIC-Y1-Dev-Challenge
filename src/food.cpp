@@ -22,7 +22,7 @@ void ReturningToHub::onTick(Ant& ant, AntWorld* world) {
     auto before = ant.position;
     if (before == ant.homeCoord) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("ReturningToHub", "DeterminedExploration",
+        logStateTransition(ant.antID, "ReturningToHub", "DeterminedExploration",
                            "reached hub");
 #endif
         ant.switchTo(DeterminedExploration{}, world);
@@ -31,7 +31,7 @@ void ReturningToHub::onTick(Ant& ant, AntWorld* world) {
                                   this->path[this->currentStep++],
                                   world->foodMap)) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("ReturningToHub", "Combust", "no more legal move");
+        logStateTransition(ant.antID, "ReturningToHub", "Combust", "no more legal move");
 #endif
         ant.combust();
         return;
@@ -57,16 +57,24 @@ void FoundFood::onChangeFrom(Ant& ant, AntWorld* world) {
 void FoundFood::onTick(Ant& ant, AntWorld* world) {
     auto before = ant.position;
     if (before == this->food) {
+        if (ant.carryingFood) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("FoundFood", "ReturningToHub", "reached food");
+            logStateTransition(ant.antID, "FoundFood", "ReturningToHub", "reached food");
 #endif
-        ant.switchTo(ReturningToHub{}, world);
-        return;
+            ant.switchTo(ReturningToHub{}, world);
+            return;
+        } else {
+#ifdef DEBUG_STATE_TRANSITION
+            logStateTransition(ant.antID, "FoundFood", "DeterminedExploration", "food taken");
+#endif
+            ant.switchTo(DeterminedExploration{}, world);
+            return;
+        }
     } else if (before == ant.move(world->terrainMap,
                                   this->path[this->currentStep++],
                                   world->foodMap)) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("FoundFood", "DeterminedExploration",
+        logStateTransition(ant.antID, "FoundFood", "DeterminedExploration",
                            "out of energy for food at (%d, %d)",
                            this->food.first, this->food.second);
 #endif

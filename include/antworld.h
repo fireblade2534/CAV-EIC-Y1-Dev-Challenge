@@ -69,11 +69,11 @@ using AntState = std::variant<
 
 #ifdef DEBUG_STATE_TRANSITION
 #include <stdarg.h>
-inline void logStateTransition(std::string from, std::string to,
+inline void logStateTransition(int id, std::string from, std::string to,
                                const char* reason, ...) {
     va_list args;
     va_start(args, reason);
-    printf("Transition: %s => %s | Reason: ", from.c_str(), to.c_str());
+    printf("Transition (ant %d): %s => %s | Reason: ", id, from.c_str(), to.c_str());
     vfprintf(stdout, reason, args);
     va_end(args);
     printf("\n");

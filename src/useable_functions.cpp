@@ -109,6 +109,7 @@ Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vec
         int selfDistance = getManhattanDistance(this->position, food);
 
         bool selfClosest = true;
+        std::vector<const Ant*> antWithSameDist;
 
         for (const Ant* otherAnt : ants) {
             // outside of the other ant's detection radius
@@ -124,11 +125,26 @@ Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vec
             if (theirDistance < selfDistance) {
                 selfClosest = false;
                 break;
+            } else if (selfDistance == theirDistance) {
+                antWithSameDist.push_back(otherAnt);
             }
         }
 
         if (selfClosest) {
-            return food;
+            if (antWithSameDist.empty()) {
+                return food;
+            }
+            else {
+                /* (1 / n) chance of going for the food, with n being the number
+                 * of ant at the same distance */
+                static std::mt19937 generalRNG(std::random_device{}());
+                std::uniform_int_distribution<int> dist(1,
+                                                        antWithSameDist.size());
+                int willGo = dist(generalRNG);
+                if (willGo == 1) {
+                    return food;
+                }
+            }
         }
     }
 

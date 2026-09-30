@@ -80,6 +80,7 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     std::vector<Coord> foods = ant.foodScan(world->foodMap);
     std::vector<Ant*> ants = ant.antScan(*world);
     std::vector<Coord> foodPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
+    std::vector<Coord> trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
 
     // filter out valid food that the ant can actually reach
     std::erase_if(foods, [&](const Coord &foodLoc) {
@@ -102,12 +103,10 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         ant.actionCountTable[ant.actionIndex] = k;
     }
 
-    std::vector<Coord> trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
-
     Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones);
     if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("DeterminedExploration", "FoundFood",
+        logStateTransition(ant.antID, "DeterminedExploration", "FoundFood",
                            "found food at (%d, %d)", foodChoice.first,
                            foodChoice.second);
 #endif
@@ -117,7 +116,7 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     // if detects a food pheromone
     else if (!foodPheromones.empty()) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("DeterminedExploration", "FollowingPheromoneTrail", "found pheromone trail");
+        logStateTransition(ant.antID, "DeterminedExploration", "FollowingPheromoneTrail", "found pheromone trail");
 #endif
         ant.switchTo(FollowingPheromoneTrail{}, world);
         return;
@@ -128,7 +127,7 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     ant.actionIndex = this->chooseAction(ant, world);
     if (ant.actionIndex == 1) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("DeterminedExploration", "RandomExploration", "chosen action");
+        logStateTransition(ant.antID, "DeterminedExploration", "RandomExploration", "chosen action");
 #endif
         ant.switchTo(RandomExploration{}, world);
         return;
@@ -161,11 +160,11 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
             this->setExploreDirection(
                 world->getNewExploreDirection(ant.exploreDirection), ant,
                 world);
-            /* not sure whether a random move should affect reward or not */
-            /* ant.actionIndex = -1; */
+            /* random move shouldn't affect reward calculation */
+            ant.actionIndex = -1;
         } else {
 #ifdef DEBUG_STATE_TRANSITION
-            logStateTransition("DeterminedExploration", "Combust",
+            logStateTransition(ant.antID, "DeterminedExploration", "Combust",
                                "no more legal move");
 #endif
             ant.combust();
@@ -214,7 +213,7 @@ void RandomExploration::onTick(Ant &ant, AntWorld *world) {
         // destroyed.
         if (!canMove) {
 #ifdef DEBUG_STATE_TRANSITION
-            logStateTransition("RandomExploration", "Combust", "no more legal move");
+            logStateTransition(ant.antID, "RandomExploration", "Combust", "no more legal move");
 #endif
             ant.combust();
             return;
@@ -227,7 +226,7 @@ void RandomExploration::onTick(Ant &ant, AntWorld *world) {
      * DeterminedExploration for reward update, which includes checking for food
      * and pheromone and transitioning to the appropriate state */
 #ifdef DEBUG_STATE_TRANSITION
-    logStateTransition("RandomExploration", "DeterminedExploration", "finished random move");
+    logStateTransition(ant.antID, "RandomExploration", "DeterminedExploration", "finished random move");
 #endif
     ant.switchTo(DeterminedExploration{}, world);
 
