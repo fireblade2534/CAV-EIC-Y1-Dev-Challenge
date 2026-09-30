@@ -170,8 +170,8 @@ Coord Ant::move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap) {
     }
 
     printf(
-        "Moving from (%d, %d) to (%d, %d) costed %d energy. Energy left: %d\n",
-        this->position.first, this->position.second, step.first, step.second,
+        "Ant %d moving from (%d, %d) to (%d, %d) costed %d energy. Energy left: %d\n",
+        this->antID, this->position.first, this->position.second, step.first, step.second,
         cost, this->energy - cost);
 
     this->position = step;

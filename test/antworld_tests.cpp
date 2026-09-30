@@ -121,7 +121,7 @@ namespace {
     void testMovementAndFood() {
         MapTemplate terrain{{0, 0, 2, 2}};
         MapTemplate food{{0, 0, 0, 1}};
-        Ant ant(3, {0, 0});
+        Ant ant(0, 3, {0, 0});
 
         attemptMoveAlongPath(ant, {0, 3}, terrain, food);
         check(ant.position == Coord(0, 1),
@@ -143,7 +143,7 @@ namespace {
         check(ant.position == previous && ant.energy == previousEnergy,
               "out-of-bounds destination is safely rejected");
 
-        Ant homebound(10, {0, 0});
+        Ant homebound(0, 10, {0, 0});
         homebound.position = {0, 3};
         attemptMoveAlongPath(homebound, homebound.homeCoord, terrain, food);
         check(homebound.position == Coord(0, 0), "returnHome targets home coordinate");
@@ -152,7 +152,7 @@ namespace {
     void testScanning() {
         MapTemplate food(9, std::vector<int>(9, 0));
         food[0][0] = food[3][3] = food[4][4] = 1;
-        Ant ant(10, {0, 0});
+        Ant ant(0, 10, {0, 0});
         const auto scan = ant.foodScan(food);
         check(scan.size() == 2, "foodScan clips search square at map edges");
         check(std::find(scan.begin(), scan.end(), Coord(4, 4)) == scan.end(),
@@ -168,7 +168,7 @@ namespace {
 
     void testPheromones() {
         PheromoneTemplate map(3, std::vector<std::pair<int, int>>(3, {0, 0}));
-        Ant first(10, {1, 1});
+        Ant first(0, 10, {1, 1});
         first.dropPheromone(map, PheromoneType::Trail, 10);
         check(map[1][1].first == 10 && map[1][1].second == 0, "dropping trail only write trail pheromones");
         
@@ -193,7 +193,7 @@ namespace {
         AntWorld world(42, 5, 5, 0);
         world.foodMap.assign(5, std::vector<int>(5, 0));
         world.foodMap[4][4] = 1;
-        world.ants.emplace_back(5, world.homeCoordinates);
+        world.ants.emplace_back(0, 5, world.homeCoordinates);
         world.ants.back().carryingFood = true;
         world.afterAntUpdate();
         check(world.score == 1 && !world.ants.back().carryingFood,

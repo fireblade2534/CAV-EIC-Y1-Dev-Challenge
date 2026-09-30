@@ -82,7 +82,7 @@ inline void logStateTransition(std::string from, std::string to,
 
 class Ant {
 public:
-    Ant(int initEnergy, Coord homeCoordinates, double epsilon = 0.2, int stickiness = 8);
+    Ant(int ID, int initEnergy, Coord homeCoordinates, double epsilon = 0.2, int stickiness = 8);
 
     std::vector<Coord> foodScan(MapTemplate &foodMap);
     std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
@@ -131,6 +131,8 @@ public:
      * moves according to determined exploration and 1 when ant moves according
      * to random exploration */
     int actionIndex = 0;
+    
+    int antID = 0;
 
     /* class members */
     constexpr static int dr[4] = {1, -1, 0, 0};
