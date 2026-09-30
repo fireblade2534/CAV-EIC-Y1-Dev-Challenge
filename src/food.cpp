@@ -31,10 +31,9 @@ void ReturningToHub::onTick(Ant& ant, AntWorld* world) {
                                   this->path[this->currentStep++],
                                   world->foodMap)) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("ReturningToHub", "DeterminedExploration",
-                           "out of energy");
+        logStateTransition("ReturningToHub", "Combust", "no more legal move");
 #endif
-        ant.switchTo(DeterminedExploration{}, world);
+        ant.combust();
         return;
     }
 }

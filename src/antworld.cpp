@@ -12,9 +12,11 @@ void FollowingPheromoneTrail::onChangeTo(Ant& ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onChangeFrom(Ant& ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld* world) {}
 
-Ant::Ant(int initEnergy, Coord homeCoordinates, double epsilon, int stickiness) {
+Ant::Ant(int ID, int initEnergy, Coord homeCoordinates, double epsilon, int stickiness) {
     // assign initial energy
     this->energy = initEnergy;
+
+    this -> antID = ID;
 
     // assign positions
     this->position = homeCoordinates;
@@ -51,7 +53,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
             int(mapSize_x * mapSize_y * 0.2),
             int(mapSize_x * mapSize_y * 0.4))(rng);
         std::cout << initialEnergy << std::endl;
-        this->ants.emplace_back(initialEnergy, this->homeCoordinates);
+        this->ants.emplace_back(i, initialEnergy, this->homeCoordinates);
     }
 
     // assign general exploration direction for the ants
