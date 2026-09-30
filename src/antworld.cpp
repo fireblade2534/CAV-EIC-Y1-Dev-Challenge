@@ -29,6 +29,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     this->foodMap = spreadFood(mapSize_x, mapSize_y, this->foodCount, this->rng);
     this->pheromoneMap = PheromoneTemplate(
         mapSize_x, std::vector<std::pair<int, int>>(mapSize_y, {0, 0}));
+    this->score = 0;
 
     // Randomly generating home coordinates
 
@@ -69,14 +70,51 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
         currentDir = (currentDir + 1) % this->exploreDirections.size();
     }
 
-    // initialize determined exploration setup
-    for (auto &ant : ants) {
-        std::visit(
-            [&ant, this](auto &current) { current.onChangeTo(ant, this); },
-            ant.state);
+    /* assign foods that are close to base to avoid early collision where all
+     * distances are the same */
+    auto nearbyFoods = ants[0].foodScan(foodMap);
+    for (int i = 0, currentAntIndex = 0;
+         i < std::min((int)nearbyFoods.size(), ANTCOUNT); i++, currentAntIndex++) {
+        auto &ant = ants[currentAntIndex];
+        auto &food = nearbyFoods[i];
+        ant.switchTo(FoundFood{.path = {}, .food = food}, this);
     }
 
-    this->score = 0;
+    /* calculate energy for all food sources as a debug parameter */
+    std::vector<Coord> allFoodLoc;
+    for (int i  = 0; (size_t)i < foodMap.size(); i++) {
+        for (int j = 0; (size_t)j < foodMap[0].size(); j++) {
+            if (foodMap[i][j] == 1) {
+                allFoodLoc.push_back(Coord{i, j});
+            }
+        }
+    }
+
+    int totalCost = 0;
+    int totalAntEnergy = 0;
+    for (auto & loc : allFoodLoc) {
+        auto steps = shortestPath(terrainMap, homeCoordinates, loc);
+        steps.erase(steps.begin());
+
+        int energy = 0;
+        Coord position = homeCoordinates;
+
+        for (auto step : steps) {
+            int cost = position == step
+                           ? 0
+                           : getMoveCost(terrainMap, position, step);
+            position = step;
+            energy += cost;
+        }
+
+        totalCost += energy;
+    }
+
+    for (auto& ant : ants) {
+        totalAntEnergy += ant.energy;
+    }
+
+    printf("total cost: %d, total ant energy: %d\n", totalCost, totalAntEnergy);
 }
 
 Coord AntWorld::getNewExploreDirection(Coord oldDirection) {

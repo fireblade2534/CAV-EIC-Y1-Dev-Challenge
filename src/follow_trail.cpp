@@ -85,7 +85,7 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     if (this->pheromoneTarget.first == -1 ||
         this->pheromoneTarget.second == -1) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("FollowingPheromoneTrail", "DeterminedExploration",
+        logStateTransition(ant.antID, "FollowingPheromoneTrail", "DeterminedExploration",
                            "no valid pheormone location");
 #endif
         ant.switchTo(DeterminedExploration{}, world);
@@ -93,14 +93,14 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     } else if (ant.position == this->pheromoneTarget) {
         if (ant.carryingFood) {
 #ifdef DEBUG_STATE_TRANSITION
-            logStateTransition("FollowingPheromoneTrai", "ReturningToHub",
+            logStateTransition(ant.antID, "FollowingPheromoneTrai", "ReturningToHub",
                                "food spotted at pheromone location");
 #endif
             ant.switchTo(ReturningToHub{}, world);
             return;
         } else {
 #ifdef DEBUG_STATE_TRANSITION
-            logStateTransition("FollowingPheromoneTrail",
+            logStateTransition(ant.antID, "FollowingPheromoneTrail",
                                "DeterminedExploration",
                                "reached pheromone location but no food found");
 #endif
@@ -109,12 +109,32 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
         }
     }
 
+    // scan for food while following trail
+    auto foods = ant.foodScan(world->foodMap);
+    auto ants = ant.antScan(*world);
+    auto trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
+    std::erase_if(foods, [&](const Coord &foodLoc) {
+        return std::find(ant.noReachFood.begin(), ant.noReachFood.end(), foodLoc) != ant.noReachFood.end();
+    });
+
+    Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones);
+
+    if (foodChoice.first != -1 && foodChoice.second != -1) {
+#ifdef DEBUG_STATE_TRANSITION
+        logStateTransition(ant.antID, "FollowingPheromoneTrail", "FoundFood",
+                           "found food at (%d, %d) after following trail", foodChoice.first,
+                           foodChoice.second);
+#endif
+        ant.switchTo(FoundFood{.path = {}, .food = foodChoice}, world);
+        return;
+    }
+
     auto before = ant.position;
     if (before == ant.move(world->terrainMap,
                            this->explorePath[this->currentStep++],
                            world->foodMap)) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("FollowingPheromoneTrail", "DeterminedExploration",
+        logStateTransition(ant.antID, "FollowingPheromoneTrail", "DeterminedExploration",
                            "cannot reach pheromone location");
 #endif
         ant.switchTo(DeterminedExploration{}, world);
