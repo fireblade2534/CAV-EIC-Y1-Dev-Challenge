@@ -105,7 +105,11 @@ Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods) {
         bool selfClosest = true;
 
         for (const Ant* otherAnt : ants) {
-            if (std::abs(otherAnt->position.first - food.first) > otherAnt->foodRadius || std::abs(otherAnt->position.second - food.second) > otherAnt->foodRadius) {
+            // outside of the other ant's detection radius
+            if (std::abs(otherAnt->position.first - food.first) >
+                    otherAnt->foodRadius ||
+                std::abs(otherAnt->position.second - food.second) >
+                    otherAnt->foodRadius) {
                 continue;
             }
 
@@ -125,8 +129,15 @@ Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods) {
     return {-1, -1};
 }
 
+void Ant::pickupFood(MapTemplate &foodMap) {
+    if (foodMap[this->position.first][this->position.second] == 1 && !this->carryingFood) {
+        foodMap[this->position.first][this->position.second] = 0;
+        this->carryingFood = true;
+    }
+}
+
 /** @brief This function moves the ant to the provided step.
- * The step can only be one unit in the cardinal directions. The ant will step if it has the energy to do so. If food exists at the step, it will pick it up.
+ * The step can only be one unit in the cardinal directions. The ant will step if it has the energy to do so. If food exists at the step, it will pick it up. If ant is already at location, return ant's current locatino with no cost.
  *
  * @param terrainMap terrain layer of the world map
  * @param step coordinates of the step
@@ -135,31 +146,36 @@ Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods) {
  * @return Coordinates of final ant position. Can be used to double check it's final position
  */
 Coord Ant::move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap) {
-    if (step.first >= terrainMap.size() || step.second >= terrainMap[0].size()) {
-        printf("Illegal move: attempted to move to %d, %d in %d, %d grid space\n", step.first, step.second,
-               terrainMap.size(), terrainMap[0].size());
+    if (step.first >= (int)terrainMap.size() ||
+        step.second >= (int)terrainMap[0].size()) {
+        printf("Illegal move: attempted to move to (%d, %d) in a (%d, %d) "
+               "grid space\n",
+               step.first, step.second, (int)terrainMap.size(),
+               (int)terrainMap[0].size());
         return this->position;
     }
 
-    int cost = getMoveCost(terrainMap, this->position, step);
+    int cost = this->position == step
+                   ? 0
+                   : getMoveCost(terrainMap, this->position, step);
 
     if (cost == INFINITY) {
         printf("Illegal move: attempted to move to %d, %d which violates one tile per step\n", step.first, step.second);
         return this->position;
-    }
-
-    if (cost > this->energy) {
+    } else if (cost > this->energy) {
         printf("Illegal move: attempted to move to %d, %d which would consume %d energy when the ant has %d energy\n", step.first, step.second, cost, this->energy);
         return this->position;
     }
 
+    printf(
+        "Moving from (%d, %d) to (%d, %d) costed %d energy. Energy left: %d\n",
+        this->position.first, this->position.second, step.first, step.second,
+        cost, this->energy - cost);
+
     this->position = step;
     this->energy -= cost;
 
-    if (foodMap[this->position.first][this->position.second] == 1 && !this->carryingFood) {
-        foodMap[this->position.first][this->position.second] = 0;
-        this->carryingFood = true;
-    }
+    this->pickupFood(foodMap);
 
     return this->position;
 }

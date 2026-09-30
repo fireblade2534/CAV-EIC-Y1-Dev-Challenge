@@ -1,5 +1,4 @@
 #include "../include/antworld.h"
-#include <algorithm>
 #include <iostream>
 #include <random>
 #include <vector>
@@ -8,13 +7,6 @@
 // Created by dusan on 9/4/26.
 //
 
-void FoundFood::onChangeTo(Ant &ant, AntWorld *world) {}
-void FoundFood::onChangeFrom(Ant &ant, AntWorld *world) {}
-void FoundFood::onTick(Ant &ant, AntWorld *world) {}
-
-void ReturningToHub::onChangeTo(Ant& ant, AntWorld* world) {}
-void ReturningToHub::onChangeFrom(Ant& ant, AntWorld* world) {}
-void ReturningToHub::onTick(Ant &ant, AntWorld* world) {}
 
 void FollowingPheromoneTrail::onChangeTo(Ant& ant, AntWorld* world) {}
 void FollowingPheromoneTrail::onChangeFrom(Ant& ant, AntWorld* world) {}
@@ -46,6 +38,11 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     std::uniform_int_distribution<int> rowDist(0, mapSize_x - 1);
     std::uniform_int_distribution<int> colDist(0, mapSize_y - 1);
     this->homeCoordinates = {rowDist(rng), colDist(rng)};
+
+#ifdef DEBUG_STATE_TRANSITION
+    printf("HOME COORD: (%d, %d)\n", this->homeCoordinates.first,
+           this->homeCoordinates.second);
+#endif
 
     // initialize all the ants
     for (int i = 0; i < antCount; ++i) {
@@ -108,6 +105,31 @@ void Ant::switchTo(AntState nextState, AntWorld *world) {
     std::visit(
         [this, world](auto &current) { current.onChangeTo(*this, world); },
         state);
+}
+
+bool Ant::tryLegalMove(MapTemplate &terrainMap, MapTemplate &foodMap) {
+    for (int i = 0; i < 4; i++) {
+        if (this->position.first + Ant::dr[i] < 0 ||
+            (size_t)this->position.first + Ant::dr[i] >= terrainMap.size() ||
+            this->position.second + Ant::dc[i] < 0 ||
+            (size_t)this->position.second + Ant::dc[i] >=
+                terrainMap[0].size()) {
+            continue;
+        }
+
+        Coord step{this->position.first + Ant::dr[i], this->position.second + Ant::dc[i]};
+
+        auto before = this->position;
+        if (before != this->move(terrainMap, step, foodMap)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void Ant::combust() {
+    this->energy = 0;
 }
 
 bool AntWorld::worldStep() {

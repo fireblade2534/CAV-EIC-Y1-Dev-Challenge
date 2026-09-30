@@ -77,13 +77,23 @@ void DeterminedExploration::onChangeFrom(Ant &ant, AntWorld *world) {
 }
 
 void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
-    // if sees food
     std::vector<Coord> foods = ant.foodScan(world->foodMap);
-    std::vector<Coord> foodPheromones =
-        ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
+    std::vector<Ant*> ants = ant.antScan(*world);
+    std::vector<Coord> foodPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
+
+    // filter out valid food that the ant can actually reach
+    std::vector<Coord> validFoods;
+    validFoods.reserve(foods.size());
+    std::copy_if(foods.begin(), foods.end(), std::back_inserter(validFoods),
+                 [&ant](Coord &food) {
+                     auto it = std::find(ant.noReachFood.begin(),
+                                         ant.noReachFood.end(), food);
+                     return it == ant.noReachFood.end();
+                 });
 
     // calculate reward and update value table if ant actually moved
     if (ant.actionIndex != -1) {
+        // reward is still based on the total food, not just valid ones
         int reward = world->foodScore * foods.size() +
                      world->pheromoneScore * foodPheromones.size();
 
@@ -97,17 +107,20 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         ant.actionCountTable[ant.actionIndex] = k;
     }
 
-    if (!foods.empty()) {
+    Coord foodChoice = ant.foodTarget(ants, validFoods);
+    if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
-        printf("found food; switch to FoundFood state\n");
+        logStateTransition("DeterminedExploration", "FoundFood",
+                           "found food at (%d, %d)", foodChoice.first,
+                           foodChoice.second);
 #endif
-        ant.switchTo(FoundFood{}, world);
+        ant.switchTo(FoundFood{.path = {}, .food = foodChoice}, world);
         return;
     }
     // if detects a food pheromone
     else if (!foodPheromones.empty()) {
 #ifdef DEBUG_STATE_TRANSITION
-        printf("found food pheromone; switch to FollowTraill state\n");
+        logStateTransition("DeterminedExploration", "FollowingPheromoneTrail", "found pheromone trail");
 #endif
         ant.switchTo(FollowingPheromoneTrail{}, world);
         return;
@@ -117,6 +130,9 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
      * exploration. */
     ant.actionIndex = this->chooseAction(ant, world);
     if (ant.actionIndex == 1) {
+#ifdef DEBUG_STATE_TRANSITION
+        logStateTransition("DeterminedExploration", "RandomExploration", "chosen action");
+#endif
         ant.switchTo(RandomExploration{}, world);
         return;
     } else {
@@ -126,20 +142,37 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
 
     // if path ends or cannot move
     auto before = ant.position;
-    if (before == ant.exploreDirection ||
-        before == ant.move(world->terrainMap,
-                           this->explorePath[this->currentStep++],
-                           world->foodMap)) {
+    if (before == ant.exploreDirection) {
 #ifdef DEBUG_MOVEMENT
-        printf("can't continue, get new explore direction\n");
+        printf("reach original direction, get new one\n");
 #endif
-        printf("can't continue in given direction\n");
-        // compute new general direction to explore
         this->setExploreDirection(
             world->getNewExploreDirection(ant.exploreDirection), ant, world);
-
         // skip reward calculation
         ant.actionIndex = -1;
+    } else if (before == ant.move(world->terrainMap,
+                                  this->explorePath[this->currentStep++],
+                                  world->foodMap)) {
+        // try any move to avoid wasting tick
+        bool valid = ant.tryLegalMove(world->terrainMap, world->foodMap);
+
+        // if ant can still make moves, it only needs different direction
+        if (valid) {
+#ifdef DEBUG_MOVEMENT
+            printf("can't continue but has energy, get new explore direction.\n");
+#endif
+            this->setExploreDirection(
+                world->getNewExploreDirection(ant.exploreDirection), ant,
+                world);
+            /* not sure whether a random move should affect reward or not */
+            /* ant.actionIndex = -1; */
+        } else {
+#ifdef DEBUG_STATE_TRANSITION
+            logStateTransition("DeterminedExploration", "Combust",
+                               "no more legal move");
+#endif
+            ant.combust();
+        }
     }
 #ifdef DEBUG_MOVEMENT
     else {
@@ -155,9 +188,10 @@ void RandomExploration::onChangeFrom(Ant &ant, AntWorld *world) {
 }
 
 void RandomExploration::onTick(Ant &ant, AntWorld *world) {
+    /* the function doesn't need any food / pheromone check because it is guaranteed that the checks have already happened (and the rewards have been updated) before state transitions to random exploration. */
     int moveDir = rand() % 4;
-    Coord step = {ant.position.first + this->dr[moveDir],
-                  ant.position.second + this->dc[moveDir]};
+    Coord step = {ant.position.first + Ant::dr[moveDir],
+                  ant.position.second + Ant::dc[moveDir]};
 
     // bounce the other direction if out of bounds
     if (step.first < 0) {
@@ -172,32 +206,28 @@ void RandomExploration::onTick(Ant &ant, AntWorld *world) {
         step.second -= 2;
     }
 
+
     // if ant fails, try all other directions
     if (ant.position == ant.move(world->terrainMap, step, world->foodMap)) {
-        if (ant.energy > 0) {
-            for (int i = 0; i < 4; i++) {
-                if (ant.position.first + this->dr[i] < 0 ||
-                    (size_t)ant.position.first + this->dr[i] >=
-                        world->terrainMap.size() ||
-                    ant.position.second + this->dc[i] < 0 ||
-                    (size_t)ant.position.second + this->dc[i] >=
-                        world->terrainMap[0].size()) {
-                    continue;
-                }
+        bool canMove = ant.tryLegalMove(world->terrainMap, world->foodMap);
 
-                step = {ant.position.first + this->dr[i],
-                        ant.position.second + this->dc[i]};
-
-                if (ant.position !=
-                    ant.move(world->terrainMap, step, world->foodMap)) {
-                    break;
-                }
-            }
+        // if ant can't move in any direction, it's trapped and should be
+        // destroyed.
+        if (!canMove) {
+#ifdef DEBUG_STATE_TRANSITION
+            logStateTransition("RandomExploration", "Combust", "no more legal move");
+#endif
+            ant.combust();
+            return;
         }
     }
 
     /* regardless of what happens, always transition back to
      * DeterminedExploration for reward update, which includes checking for food
      * and pheromone and transitioning to the appropriate state */
+#ifdef DEBUG_STATE_TRANSITION
+    logStateTransition("RandomExploration", "DeterminedExploration", "finished random move");
+#endif
     ant.switchTo(DeterminedExploration{}, world);
+
 }
