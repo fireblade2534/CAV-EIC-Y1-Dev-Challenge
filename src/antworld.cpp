@@ -7,11 +7,6 @@
 // Created by dusan on 9/4/26.
 //
 
-
-void FollowingPheromoneTrail::onChangeTo(Ant& ant, AntWorld* world) {}
-void FollowingPheromoneTrail::onChangeFrom(Ant& ant, AntWorld* world) {}
-void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld* world) {}
-
 Ant::Ant(int ID, int initEnergy, Coord homeCoordinates, double epsilon, int stickiness) {
     // assign initial energy
     this->energy = initEnergy;
@@ -75,7 +70,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     }
 
     // initialize determined exploration setup
-    for (auto &ant: ants) {
+    for (auto &ant : ants) {
         std::visit(
             [&ant, this](auto &current) { current.onChangeTo(ant, this); },
             ant.state);
@@ -153,9 +148,7 @@ bool AntWorld::worldStep() {
     return this->isGameOver();
 }
 
-void AntWorld::beforeAntUpdate() {
-    
-}
+void AntWorld::beforeAntUpdate() {}
 
 void AntWorld::afterAntUpdate() {
     for (auto it = this->ants.begin(); it != this->ants.end();) {
@@ -183,7 +176,6 @@ bool AntWorld::isGameOver() {
     if (this->ants.empty()) {
         return true;
     }
-
 
     // if there is no remaining food, congrats, game over
     if (not hasFood(foodMap)) {
