@@ -29,6 +29,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     this->foodMap = spreadFood(mapSize_x, mapSize_y, this->foodCount, this->rng);
     this->pheromoneMap = PheromoneTemplate(
         mapSize_x, std::vector<std::pair<int, int>>(mapSize_y, {0, 0}));
+    this->score = 0;
 
     // Randomly generating home coordinates
 
@@ -69,14 +70,15 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
         currentDir = (currentDir + 1) % this->exploreDirections.size();
     }
 
-    // initialize determined exploration setup
-    for (auto &ant : ants) {
-        std::visit(
-            [&ant, this](auto &current) { current.onChangeTo(ant, this); },
-            ant.state);
+    /* assign foods that are close to base to avoid early collision where all
+     * distances are the same */
+    auto allFoods = ants[0].foodScan(foodMap);
+    for (int i = 0, currentAntIndex = 0;
+         i < std::min((int)allFoods.size(), ANTCOUNT); i++, currentAntIndex++) {
+        auto &ant = ants[currentAntIndex];
+        auto &food = allFoods[i];
+        ant.switchTo(FoundFood{.path = {}, .food = food}, this);
     }
-
-    this->score = 0;
 }
 
 Coord AntWorld::getNewExploreDirection(Coord oldDirection) {
