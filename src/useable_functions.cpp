@@ -87,10 +87,14 @@ std::vector<Ant*> Ant::antScan(AntWorld &antWorld) {
  * @return The target food for the ant. Will be -1, -1 if the ant shouldn't go to a food
  * 
  */
-Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods) {
+Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vector<Coord> trails) {
     if (foods.empty()) {
         return {-1, -1};
     }
+
+    std::erase_if(ants, [&](const Ant* otherAnt) {
+        return std::ranges::find(trails, otherAnt->position) == trails.end();
+    });
 
     std::sort(foods.begin(), foods.end(),
         [this](const Coord& a, const Coord& b) {
