@@ -82,14 +82,9 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     std::vector<Coord> foodPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
 
     // filter out valid food that the ant can actually reach
-    std::vector<Coord> validFoods;
-    validFoods.reserve(foods.size());
-    std::copy_if(foods.begin(), foods.end(), std::back_inserter(validFoods),
-                 [&ant](Coord &food) {
-                     auto it = std::find(ant.noReachFood.begin(),
-                                         ant.noReachFood.end(), food);
-                     return it == ant.noReachFood.end();
-                 });
+    std::erase_if(foods, [&](const Coord &foodLoc) {
+        return std::find(ant.noReachFood.begin(), ant.noReachFood.end(), foodLoc) != ant.noReachFood.end();
+    });
 
     // calculate reward and update value table if ant actually moved
     if (ant.actionIndex != -1) {
@@ -109,7 +104,7 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
 
     std::vector<Coord> trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
 
-    Coord foodChoice = ant.foodTarget(ants, validFoods, trailPheromones);
+    Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones);
     if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
         logStateTransition("DeterminedExploration", "FoundFood",
