@@ -110,7 +110,9 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     Coord foodChoice = ant.foodTarget(ants, validFoods);
     if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
-        logStateTransition("DeterminedExploration", "FoundFood", "found food");
+        logStateTransition("DeterminedExploration", "FoundFood",
+                           "found food at (%d, %d)", foodChoice.first,
+                           foodChoice.second);
 #endif
         ant.switchTo(FoundFood{.path = {}, .food = foodChoice}, world);
         return;
@@ -188,8 +190,8 @@ void RandomExploration::onChangeFrom(Ant &ant, AntWorld *world) {
 void RandomExploration::onTick(Ant &ant, AntWorld *world) {
     /* the function doesn't need any food / pheromone check because it is guaranteed that the checks have already happened (and the rewards have been updated) before state transitions to random exploration. */
     int moveDir = rand() % 4;
-    Coord step = {ant.position.first + this->dr[moveDir],
-                  ant.position.second + this->dc[moveDir]};
+    Coord step = {ant.position.first + Ant::dr[moveDir],
+                  ant.position.second + Ant::dc[moveDir]};
 
     // bounce the other direction if out of bounds
     if (step.first < 0) {

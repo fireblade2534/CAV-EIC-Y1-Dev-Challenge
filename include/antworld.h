@@ -89,6 +89,8 @@ public:
 
     Coord move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap);
 
+    void pickupFood(MapTemplate &foodMap);
+
     void switchTo(AntState nextState, AntWorld* world);
 
     void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int strength = 10);
@@ -116,17 +118,20 @@ public:
 
     // exploration related fields
     double epsilon;
+    int stickiness;
+    std::vector<double> actionValueTable = {0.0, 0.0};
+    std::vector<int> actionCountTable = {0, 0};
+    std::vector<int> optimalActions;
+    int randomActionCount = 0;
 
     /* actionIndex can either be -1 for when ant does not move, 0 for when ant
      * moves according to determined exploration and 1 when ant moves according
      * to random exploration */
     int actionIndex = 0;
 
-    std::vector<double> actionValueTable = {0.0, 0.0};
-    std::vector<int> actionCountTable = {0, 0};
-    std::vector<int> optimalActions;
-    int randomActionCount = 0;
-    int stickiness = stickiness;
+    /* class members */
+    constexpr static int dr[4] = {1, -1, 0, 0};
+    constexpr static int dc[4] = {0, 0, 1, -1};
 };
 
 class AntWorld {

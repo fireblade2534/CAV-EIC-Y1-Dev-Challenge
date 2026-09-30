@@ -1,5 +1,4 @@
 #include "../include/antworld.h"
-#include <algorithm>
 #include <iostream>
 #include <random>
 #include <vector>
@@ -109,20 +108,19 @@ void Ant::switchTo(AntState nextState, AntWorld *world) {
 }
 
 bool Ant::tryLegalMove(MapTemplate &terrainMap, MapTemplate &foodMap) {
-    static int dr[4] = {1, -1, 0, 0};
-    static int dc[4] = {0, 0, 1, -1};
-
     for (int i = 0; i < 4; i++) {
-        if (this->position.first + dr[i] < 0 ||
-            (size_t)this->position.first + dr[i] >= terrainMap.size() ||
-            this->position.second + dc[i] < 0 ||
-            (size_t)this->position.second + dc[i] >= terrainMap[0].size()) {
+        if (this->position.first + Ant::dr[i] < 0 ||
+            (size_t)this->position.first + Ant::dr[i] >= terrainMap.size() ||
+            this->position.second + Ant::dc[i] < 0 ||
+            (size_t)this->position.second + Ant::dc[i] >=
+                terrainMap[0].size()) {
             continue;
         }
 
-        Coord step{this->position.first + dr[i], this->position.second + dc[i]};
+        Coord step{this->position.first + Ant::dr[i], this->position.second + Ant::dc[i]};
 
-        if (this->position != this->move(terrainMap, step, foodMap)) {
+        auto before = this->position;
+        if (before != this->move(terrainMap, step, foodMap)) {
             return true;
         }
     }
