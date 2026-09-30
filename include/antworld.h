@@ -33,7 +33,9 @@ struct ReturningToHub {
 };
 
 struct FollowingPheromoneTrail {
-    Coord foodTarget = {-1, -1};
+    Coord pheromoneTarget = {-1, -1};
+    std::vector<Coord> explorePath;
+    int currentStep = -1;
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
