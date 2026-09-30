@@ -19,7 +19,6 @@ set(STATE_SOURCES
 
 add_executable(dev_challenge
         src/main.cpp
-        src/applicant_solution.cpp
         ${FRAMEWORK_SOURCES}
         ${STATE_SOURCES}
 )
@@ -60,7 +59,6 @@ include(CTest)
 if (BUILD_TESTING)
     add_executable(antworld_tests
             test/antworld_tests.cpp
-            src/applicant_solution.cpp
             ${FRAMEWORK_SOURCES}
             ${STATE_SOURCES}
     )

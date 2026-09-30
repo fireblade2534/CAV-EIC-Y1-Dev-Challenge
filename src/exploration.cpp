@@ -9,7 +9,7 @@ void DeterminedExploration::setExploreDirection(Coord direction, Ant &ant,
     this->explorePath =
         shortestPath(world->terrainMap, ant.position, ant.exploreDirection);
 
-    /* path can never be empty because of starting position. if path only has 1
+    /* Path can never be empty because of starting position. if path only has 1
      * element, onTick will change it to explore a different direction because
      * that means the ant has already reach its destination. */
     this->explorePath.erase(this->explorePath.begin());
@@ -17,6 +17,7 @@ void DeterminedExploration::setExploreDirection(Coord direction, Ant &ant,
 }
 
 void DeterminedExploration::onChangeTo(Ant &ant, AntWorld *world) {
+    // If the ant has reached its explored direction destination it picks a new explore direction
     if (ant.position == ant.exploreDirection) {
         ant.exploreDirection =
             world->getNewExploreDirection(ant.exploreDirection);
@@ -25,7 +26,7 @@ void DeterminedExploration::onChangeTo(Ant &ant, AntWorld *world) {
     this->setExploreDirection(ant.exploreDirection, ant, world);
     this->explore = std::bernoulli_distribution{ant.epsilon};
 
-    // skip first reward calculation if not transiting from random exploration
+    // Skip first reward calculation if not transiting from random exploration
     if (ant.actionIndex != 1) {
         ant.actionIndex = -1;
     }
@@ -38,7 +39,7 @@ void DeterminedExploration::onChangeTo(Ant &ant, AntWorld *world) {
  * epsilon-greedy apprach. This approach yielded the best result in my testing.
  */
 int DeterminedExploration::chooseAction(Ant &ant, AntWorld *world) {
-    /* the ant will stick to random exploration for a certain amount of tick.
+    /* The ant will stick to random exploration for a certain amount of ticks.
      * this yieleded the best result from simulation */
     int actionIndex;
 
@@ -103,7 +104,7 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         ant.actionCountTable[ant.actionIndex] = k;
     }
 
-    Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones);
+    Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones, world->rng);
     if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "DeterminedExploration", "FoundFood",
@@ -187,7 +188,9 @@ void RandomExploration::onChangeFrom(Ant &ant, AntWorld *world) {
 
 void RandomExploration::onTick(Ant &ant, AntWorld *world) {
     /* the function doesn't need any food / pheromone check because it is guaranteed that the checks have already happened (and the rewards have been updated) before state transitions to random exploration. */
-    int moveDir = rand() % 4;
+    std::uniform_int_distribution<int> moveDirDist(0, 3);
+    int moveDir = moveDirDist(world->rng);
+
     Coord step = {ant.position.first + Ant::dr[moveDir],
                   ant.position.second + Ant::dc[moveDir]};
 

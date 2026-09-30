@@ -87,7 +87,7 @@ std::vector<Ant*> Ant::antScan(AntWorld &antWorld) {
  * @return The target food for the ant. Will be -1, -1 if the ant shouldn't go to a food
  * 
  */
-Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vector<Coord> trails) {
+Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vector<Coord> trails, std::mt19937& rng) {
     if (foods.empty()) {
         return {-1, -1};
     }
@@ -134,16 +134,17 @@ Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vec
             if (antWithSameDist.empty()) {
                 return food;
             }
-            else {
-                /* (1 / n) chance of going for the food, with n being the number
-                 * of ant at the same distance */
-                static std::mt19937 generalRNG(std::random_device{}());
-                std::uniform_int_distribution<int> dist(1,
-                                                        antWithSameDist.size());
-                int willGo = dist(generalRNG);
-                if (willGo == 1) {
-                    return food;
-                }
+
+            /* (1 / n) chance of going for the food, with n being the number
+                * of ant at the same distance */
+            std::uniform_int_distribution<int> dist(
+                1,
+                static_cast<int>(antWithSameDist.size()) + 1
+            );
+
+            int willGo = dist(rng);
+            if (willGo == 1) {
+                return food;
             }
         }
     }

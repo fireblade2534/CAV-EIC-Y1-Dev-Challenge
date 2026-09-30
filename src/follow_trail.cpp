@@ -117,7 +117,7 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
         return std::find(ant.noReachFood.begin(), ant.noReachFood.end(), foodLoc) != ant.noReachFood.end();
     });
 
-    Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones);
+    Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones, world->rng);
 
     if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
