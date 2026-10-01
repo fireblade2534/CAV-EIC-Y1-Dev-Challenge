@@ -10,24 +10,24 @@ void FollowingPheromoneTrail::onChangeFrom(Ant &ant, AntWorld *world) {}
 void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
     this->pheromoneTarget = {-1, -1};
 
-    // scan using pheromone scan function
+    // Scan using pheromone scan function
     auto foodTrails =
         ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
 
-    // everything has faded
+    // Everything has faded
     if (foodTrails.empty()) {
         ant.switchTo(DeterminedExploration{}, world);
         return;
     }
 
-    // sort for weakest pheromone strength first
+    // Sort for weakest pheromone strength first
     sort(foodTrails.begin(), foodTrails.end(),
          [world](const Coord &a, const Coord &b) -> bool {
              return world->pheromoneMap[a.first][a.second].second <
                     world->pheromoneMap[b.first][b.second].second;
          });
 
-    auto others = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
+    auto others = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
 
     /*
        Decides which pheromone location to go to and compute path. the rule for
@@ -66,7 +66,7 @@ void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
     }
 
     if (this->pheromoneTarget.first == -1 || this->pheromoneTarget.second == -1) {
-        // get the first regardless
+        // Get the first regardless
         this->pheromoneTarget = *foodTrails.begin();
     }
 
@@ -109,13 +109,10 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
         }
     }
 
-    // scan for food while following trail
+    // Scan for food while following trail
     auto foods = ant.foodScan(world->foodMap);
     auto ants = ant.antScan(*world);
-    auto trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
-    std::erase_if(foods, [&](const Coord &foodLoc) {
-        return std::find(ant.noReachFood.begin(), ant.noReachFood.end(), foodLoc) != ant.noReachFood.end();
-    });
+    auto trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
 
     Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones, world->rng);
 

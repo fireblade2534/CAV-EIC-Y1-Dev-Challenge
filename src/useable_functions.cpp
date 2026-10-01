@@ -6,20 +6,25 @@
 
 /** @brief Checks all squares within foodRadius blocks of itself.
  *
- * @param foodMap the food layer of the world map
+ * @param foodMap The food layer of the world map
+ * @param filterNoReach Filters out food that the ant cannot reach
  *
- * @return vector of coordinates of locations in that range that have food
+ * @return Vector of coordinates of locations in that range that have food
  */
-std::vector<Coord> Ant::foodScan(MapTemplate &foodMap) {
+std::vector<Coord> Ant::foodScan(MapTemplate &foodMap, bool filterNoReach) {
     std::vector<Coord> foodLocations = {};
     for (int i = this->position.first - this->foodRadius; i <= this->position.first + this->foodRadius; ++i) {
         for (int j = this->position.second - this->foodRadius; j <= this->position.second + this->foodRadius; ++j) {
             if (i < 0 || i >= foodMap.size() || j < 0 || j >= foodMap[0].size()) {
                 continue;
-            } else {
-                if (foodMap[i][j] == 1) {
-                    foodLocations.emplace_back(i, j);
+            } else if (foodMap[i][j] == 1) {
+                if (filterNoReach) {
+                    if (std::find(this->noReachFood.begin(), this->noReachFood.end(), Coord {i, j}) != this->noReachFood.end()) {
+                        continue;
+                    }
                 }
+
+                foodLocations.emplace_back(i, j);
             }
         }
     }
@@ -28,9 +33,9 @@ std::vector<Coord> Ant::foodScan(MapTemplate &foodMap) {
 
 /** @brief Checks all squares within pheromoneRadius blocks of itself.
  *
- * @param pheromoneMap the pheromone layer of the world map
+ * @param pheromoneMap The pheromone layer of the world map
  *
- * @return vector of coordinates of locations in that range that have a pheromone marker
+ * @return Vector of coordinates of locations in that range that have a pheromone marker
  */
 std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type) {
     std::vector<Coord> pheromoneLocation;
@@ -42,7 +47,7 @@ std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, Pheromone
                 continue;
             } else {
                 switch (type) {
-                case PheromoneType::Trail:
+                case PheromoneType::Position:
                     if (pheromoneMap[i][j].first != 0)
                         pheromoneLocation.emplace_back(i, j);
                     break;
@@ -211,7 +216,7 @@ void Ant::dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int
 
 
     switch (type) {
-    case PheromoneType::Trail:
+    case PheromoneType::Position:
         if (pheromoneMap[this->position.first][this->position.second].first < strength) {
             pheromoneMap[this->position.first][this->position.second].first = strength;
         }
@@ -232,7 +237,7 @@ void Ant::erasePheromone(PheromoneTemplate &pheromoneMap, PheromoneType type) {
 
 
     switch (type) {
-    case PheromoneType::Trail:
+    case PheromoneType::Position:
         pheromoneMap[this->position.first][this->position.second].first = 0;
         break;
     case PheromoneType::Food:

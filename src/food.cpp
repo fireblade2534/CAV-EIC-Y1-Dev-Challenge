@@ -13,7 +13,7 @@ void ReturningToHub::onTick(Ant& ant, AntWorld* world) {
     } else {
         /* ant should drop food pheromone on sight of any other food, not just
          * the ones it is closest to */
-        std::vector<Coord> foods = ant.foodScan(world->foodMap);
+        std::vector<Coord> foods = ant.foodScan(world->foodMap, false);
         if (!foods.empty()) {
             this->pheromoneTrail = true;
         }
@@ -82,5 +82,5 @@ void FoundFood::onTick(Ant& ant, AntWorld* world) {
         return;
     }
 
-    ant.dropPheromone(world->pheromoneMap, PheromoneType::Trail, 2);
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 2);
 }

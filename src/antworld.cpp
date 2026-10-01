@@ -142,7 +142,7 @@ void Ant::switchTo(AntState nextState, AntWorld *world) {
         state);
 }
 
-bool Ant::tryLegalMove(MapTemplate &terrainMap, MapTemplate &foodMap) {
+bool Ant::anyLegalMove(MapTemplate &terrainMap, MapTemplate &foodMap) {
     for (int i = 0; i < 4; i++) {
         if (this->position.first + Ant::dr[i] < 0 ||
             (size_t)this->position.first + Ant::dr[i] >= terrainMap.size() ||

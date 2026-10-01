@@ -84,7 +84,7 @@ class Ant {
 public:
     Ant(int ID, int initEnergy, Coord homeCoordinates, double epsilon = 0.2, int stickiness = 8);
 
-    std::vector<Coord> foodScan(MapTemplate &foodMap);
+    std::vector<Coord> foodScan(MapTemplate &foodMap, bool filterNoReach = true);
     std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
     std::vector<Ant*> antScan(AntWorld &antWorld);
 
@@ -102,7 +102,7 @@ public:
     // self-destruct option since ant cannot move anymore
     void combust();
 
-    bool tryLegalMove(MapTemplate& terrainMap, MapTemplate& foodMap);
+    bool anyLegalMove(MapTemplate& terrainMap, MapTemplate& foodMap);
 
     int energy{0};
 

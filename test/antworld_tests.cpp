@@ -161,7 +161,7 @@ namespace {
         PheromoneTemplate pheromones(12, std::vector<std::pair<int, int>>(12, {0, 0}));
         pheromones[5][5] = {1, 1};
         pheromones[6][6] = pheromones[11][11] = {1, 1};
-        const auto pscan = ant.pheromoneScan(pheromones, PheromoneType::Trail);
+        const auto pscan = ant.pheromoneScan(pheromones, PheromoneType::Position);
         // check(pscan.size() == 1 && pscan.front() == Coord(5, 5),
         //       "pheromoneScan finds occupied cells within radius");
     }
@@ -169,7 +169,7 @@ namespace {
     void testPheromones() {
         PheromoneTemplate map(3, std::vector<std::pair<int, int>>(3, {0, 0}));
         Ant first(0, 10, {1, 1});
-        first.dropPheromone(map, PheromoneType::Trail, 10);
+        first.dropPheromone(map, PheromoneType::Position, 10);
         check(map[1][1].first == 10 && map[1][1].second == 0, "dropping trail only write trail pheromones");
         
         updatePheromones(map);
@@ -181,7 +181,7 @@ namespace {
         updatePheromones(map);
         check(map[1][1].first == 8 && map[1][1].second == 14, "updating pheromones causes strength decay on both channels");
 
-        first.erasePheromone(map, PheromoneType::Trail);
+        first.erasePheromone(map, PheromoneType::Position);
         check(map[1][1].first == 0 && map[1][1].second == 14, "erasing trail pheromones");
 
         first.erasePheromone(map, PheromoneType::Food);
