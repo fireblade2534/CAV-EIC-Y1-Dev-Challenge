@@ -79,7 +79,8 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
         auto &food = nearbyFoods[i];
         ant.switchTo(FoundFood{.path = {}, .food = food}, this);
     }
-
+    
+#ifdef DEBUG_TOTAL_ENERGY
     /* calculate energy for all food sources as a debug parameter */
     std::vector<Coord> allFoodLoc;
     for (int i  = 0; (size_t)i < foodMap.size(); i++) {
@@ -115,6 +116,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     }
 
     printf("total cost: %d, total ant energy: %d\n", totalCost, totalAntEnergy);
+#endif
 }
 
 Coord AntWorld::getNewExploreDirection(Coord oldDirection) {
@@ -170,6 +172,12 @@ void Ant::combust() {
 bool AntWorld::worldStep() {
     // Performs anything that needs to be done before the ants update
     this->beforeAntUpdate();
+
+    // Performs all before tick actions
+    for (Ant &ant : ants) {
+        std::visit([&ant, this](auto &current) { current.beforeTick(ant, this); },
+                   ant.state);
+    } 
 
     // Performs all ant actions
     for (Ant &ant : ants) {

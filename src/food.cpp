@@ -7,6 +7,8 @@ void ReturningToHub::onChangeTo(Ant& ant, AntWorld* world) {
 
 void ReturningToHub::onChangeFrom(Ant& ant, AntWorld* world) {}
 
+void ReturningToHub::beforeTick(Ant &ant, AntWorld *world) {}
+
 void ReturningToHub::onTick(Ant& ant, AntWorld* world) {
     if (this->pheromoneTrail) {
         ant.dropPheromone(world->pheromoneMap, PheromoneType::Food);
@@ -54,6 +56,10 @@ void FoundFood::onChangeFrom(Ant& ant, AntWorld* world) {
     }
 }
 
+void FoundFood::beforeTick(Ant &ant, AntWorld *world) {
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 1);
+}
+
 void FoundFood::onTick(Ant& ant, AntWorld* world) {
     auto before = ant.position;
     if (before == this->food) {
@@ -62,14 +68,15 @@ void FoundFood::onTick(Ant& ant, AntWorld* world) {
             logStateTransition(ant.antID, "FoundFood", "ReturningToHub", "reached food");
 #endif
             ant.switchTo(ReturningToHub{}, world);
-            return;
         } else {
 #ifdef DEBUG_STATE_TRANSITION
             logStateTransition(ant.antID, "FoundFood", "DeterminedExploration", "food taken");
 #endif
             ant.switchTo(DeterminedExploration{}, world);
-            return;
         }
+
+        ant.erasePheromone(world->pheromoneMap, PheromoneType::Position);
+        return;
     } else if (before == ant.move(world->terrainMap,
                                   this->path[this->currentStep++],
                                   world->foodMap)) {
@@ -81,6 +88,4 @@ void FoundFood::onTick(Ant& ant, AntWorld* world) {
         ant.switchTo(DeterminedExploration{}, world);
         return;
     }
-
-    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 2);
 }

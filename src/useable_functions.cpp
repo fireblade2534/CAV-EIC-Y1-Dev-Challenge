@@ -86,20 +86,17 @@ std::vector<Ant*> Ant::antScan(AntWorld &antWorld) {
 
 /** @brief Chooses which food to go to
  *
- * @param ants the vector of ants in range
- * @param foods the vector of foods in range
+ * @param foods The vector of foods in range
+ * @param positions The vector of ants in range
+ * @param rng The rng generator
  *
  * @return The target food for the ant. Will be -1, -1 if the ant shouldn't go to a food
  * 
  */
-Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vector<Coord> trails, std::mt19937& rng) {
+Coord Ant::foodTarget(std::vector<Coord> foods, std::vector<Coord> positions, std::mt19937& rng) {
     if (foods.empty()) {
         return {-1, -1};
     }
-
-    std::erase_if(ants, [&](const Ant* otherAnt) {
-        return std::ranges::find(trails, otherAnt->position) == trails.end();
-    });
 
     std::sort(foods.begin(), foods.end(),
         [this](const Coord& a, const Coord& b) {
@@ -114,18 +111,22 @@ Coord Ant::foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vec
         int selfDistance = getManhattanDistance(this->position, food);
 
         bool selfClosest = true;
-        std::vector<const Ant*> antWithSameDist;
+        std::vector<Coord> antWithSameDist;
 
-        for (const Ant* otherAnt : ants) {
-            // outside of the other ant's detection radius
-            if (std::abs(otherAnt->position.first - food.first) >
-                    otherAnt->foodRadius ||
-                std::abs(otherAnt->position.second - food.second) >
-                    otherAnt->foodRadius) {
+        for (Coord otherAnt : positions) {
+            if (otherAnt.first == this->position.first && otherAnt.second == this->position.second) {
                 continue;
             }
 
-            int theirDistance = getManhattanDistance(otherAnt->position, food);
+            // Outside of the other ant's detection radius
+            if (std::abs(otherAnt.first - food.first) >
+                    this->foodRadius ||
+                std::abs(otherAnt.second - food.second) >
+                    this->foodRadius) {
+                continue;
+            }
+
+            int theirDistance = getManhattanDistance(otherAnt, food);
 
             if (theirDistance < selfDistance) {
                 selfClosest = false;
@@ -188,17 +189,22 @@ Coord Ant::move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap) {
                    : getMoveCost(terrainMap, this->position, step);
 
     if (cost == INFINITY) {
+        #ifdef DEBUG_MOVEMENT
         printf("Illegal move: attempted to move to %d, %d which violates one tile per step\n", step.first, step.second);
+        #endif
         return this->position;
     } else if (cost > this->energy) {
+        #ifdef DEBUG_MOVEMENT
         printf("Illegal move: attempted to move to %d, %d which would consume %d energy when the ant has %d energy\n", step.first, step.second, cost, this->energy);
+        #endif
         return this->position;
     }
-
+    #ifdef DEBUG_MOVEMENT
     printf(
         "Ant %d moving from (%d, %d) to (%d, %d) costed %d energy. Energy left: %d\n",
         this->antID, this->position.first, this->position.second, step.first, step.second,
         cost, this->energy - cost);
+    #endif
 
     this->position = step;
     this->energy -= cost;

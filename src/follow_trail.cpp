@@ -76,6 +76,10 @@ void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
     this->currentStep = 0;
 }
 
+void FollowingPheromoneTrail::beforeTick(Ant &ant, AntWorld *world) {
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 1);
+}
+
 /*
    @brief: If there is a food location set, go to that location. If not or if
    impossible to get there, transition to exploration. If ant is there and has
@@ -111,10 +115,9 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
 
     // Scan for food while following trail
     auto foods = ant.foodScan(world->foodMap);
-    auto ants = ant.antScan(*world);
     auto trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
 
-    Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones, world->rng);
+    Coord foodChoice = ant.foodTarget(foods, trailPheromones, world->rng);
 
     if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION

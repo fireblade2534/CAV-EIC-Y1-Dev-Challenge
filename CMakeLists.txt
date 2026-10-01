@@ -27,10 +27,15 @@ target_include_directories(dev_challenge PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+option(CAV_DEBUG_TOTAL_ENERGY "Debug option to calculate the total energy required for a world." OFF)
 option(CAV_DEBUG_MOVEMENT "Debug option to print stack on every instruction." OFF)
 option(CAV_DEBUG_EXPLORATION "Debug option to print which action was chosen." OFF)
 option(CAV_DEBUG_STATE_TRANSITION "Debug option to log state transitions." OFF)
 option(CAV_DEBUG_SINGLE_ANT "Debug option to monitor one single ant only." OFF)
+
+if (CAV_DEBUG_TOTAL_ENERGY)
+    target_compile_definitions(dev_challenge PUBLIC DEBUG_TOTAL_ENERGY)
+endif()
 
 if (CAV_DEBUG_MOVEMENT)
     target_compile_definitions(dev_challenge PUBLIC DEBUG_MOVEMENT)

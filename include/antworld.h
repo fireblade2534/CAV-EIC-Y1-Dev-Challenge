@@ -19,6 +19,7 @@ struct FoundFood {
     
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
@@ -29,6 +30,7 @@ struct ReturningToHub {
 
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
@@ -38,6 +40,7 @@ struct FollowingPheromoneTrail {
     int currentStep = -1;
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
@@ -49,6 +52,7 @@ struct DeterminedExploration {
     void setExploreDirection(Coord direction, Ant&ant, AntWorld* world);
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
     int chooseAction(Ant& ant, AntWorld* world);
 };
@@ -56,6 +60,7 @@ struct DeterminedExploration {
 struct RandomExploration {
     void onChangeTo(Ant &ant, AntWorld *world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
@@ -88,7 +93,7 @@ public:
     std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
     std::vector<Ant*> antScan(AntWorld &antWorld);
 
-    Coord foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vector<Coord> trails, std::mt19937& rng);
+    Coord foodTarget(std::vector<Coord> foods, std::vector<Coord> trails, std::mt19937& rng);
 
     Coord move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap);
 

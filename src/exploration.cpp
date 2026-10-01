@@ -76,9 +76,12 @@ void DeterminedExploration::onChangeFrom(Ant &ant, AntWorld *world) {
     ant.actionIndex = -1;
 }
 
+void DeterminedExploration::beforeTick(Ant &ant, AntWorld *world) {
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 1);
+}
+
 void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
     std::vector<Coord> foods = ant.foodScan(world->foodMap);
-    std::vector<Ant*> ants = ant.antScan(*world);
     std::vector<Coord> foodPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
     std::vector<Coord> positionPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
 
@@ -90,15 +93,15 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
 
         int k = ant.actionCountTable[ant.actionIndex];
 
-        // average reward estimate
+        // Average reward estimate
         ant.actionValueTable[ant.actionIndex] =
             (1.0 / k) * (reward - ant.actionValueTable[ant.actionIndex]);
 
-        // update action count
+        // Update action count
         ant.actionCountTable[ant.actionIndex] = k;
     }
 
-    Coord foodChoice = ant.foodTarget(ants, foods, positionPheromones, world->rng);
+    Coord foodChoice = ant.foodTarget(foods, positionPheromones, world->rng);
     if (foodChoice.first != -1 && foodChoice.second != -1) {
 #ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "DeterminedExploration", "FoundFood",
@@ -170,12 +173,15 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
                before.second, ant.position.first, ant.position.second);
     }
 #endif
-    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 2);
 }
 
 void RandomExploration::onChangeTo(Ant &ant, AntWorld *world) {}
 void RandomExploration::onChangeFrom(Ant &ant, AntWorld *world) {
     ant.actionIndex = 1;
+}
+
+void RandomExploration::beforeTick(Ant &ant, AntWorld *world) {
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 1);
 }
 
 void RandomExploration::onTick(Ant &ant, AntWorld *world) {
@@ -214,8 +220,6 @@ void RandomExploration::onTick(Ant &ant, AntWorld *world) {
             return;
         }
     }
-
-    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 2);
 
     /* Regardless of what happens, always transition back to
      * DeterminedExploration for reward update, which includes checking for food
