@@ -1,6 +1,12 @@
 #include <iostream>
 #include "../include/antworld.h"
 
+#ifdef DEBUG_SINGLE_LOOP
+#define LOOPS 1
+#else
+#define LOOPS 800
+#endif
+
 /** @brief The main function that will run the game. If you are not using a IDE gui, this is the executable you want to target when you build
  */
 int main() {
@@ -9,7 +15,6 @@ int main() {
      * always be generated. You can use this to test reproducibly while developing.
      */
     const uint32_t SEED = 12345;
-    const int LOOPS = 800;
 
     const int MAX_SIMULATION_STEP_COUNT = 1000;
     // once you're confident and want to begin testing on random seeds, you can comment out the above line

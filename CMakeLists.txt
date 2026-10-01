@@ -32,6 +32,7 @@ option(CAV_DEBUG_MOVEMENT "Debug option to print stack on every instruction." OF
 option(CAV_DEBUG_EXPLORATION "Debug option to print which action was chosen." OFF)
 option(CAV_DEBUG_STATE_TRANSITION "Debug option to log state transitions." OFF)
 option(CAV_DEBUG_SINGLE_ANT "Debug option to monitor one single ant only." OFF)
+option(CAV_DEBUG_SINGLE_LOOP "Debug option to run game for 1 loop only" OFF)
 
 if (CAV_DEBUG_TOTAL_ENERGY)
     target_compile_definitions(dev_challenge PUBLIC DEBUG_TOTAL_ENERGY)
@@ -51,6 +52,10 @@ endif()
 
 if (CAV_DEBUG_SINGLE_ANT)
     target_compile_definitions(dev_challenge PUBLIC DEBUG_SINGLE_ANT)
+endif()
+
+if (CAV_DEBUG_SINGLE_LOOP )
+    target_compile_definitions(dev_challenge PUBLIC DEBUG_SINGLE_LOOP)
 endif()
 
 if (MSVC)
