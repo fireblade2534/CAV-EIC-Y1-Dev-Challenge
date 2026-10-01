@@ -65,8 +65,14 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
                                {mapSize_x - 1, mapSize_y - 1}};
     int currentDir = 0;
     for (auto &ant : ants) {
-        ant.exploreDirection = this->exploreDirections[currentDir];
-        currentDir = (currentDir + 1) % this->exploreDirections.size();
+        if (this->exploreDirections[currentDir] != homeCoordinates) {
+            ant.exploreDirection = this->exploreDirections[currentDir];
+            currentDir = (currentDir + 1) % this->exploreDirections.size();
+        } else {
+            this->exploreDirections.erase(this->exploreDirections.begin() + currentDir);
+            currentDir = (currentDir + 1) % this->exploreDirections.size();
+            ant.exploreDirection = this->exploreDirections[currentDir];
+        }
     }
 
     /* Assign foods that are close to base to avoid early collision where all
@@ -76,9 +82,11 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
          i < std::min((int)nearbyFoods.size(), ANTCOUNT); i++, currentAntIndex++) {
         auto &ant = ants[currentAntIndex];
         auto &food = nearbyFoods[i];
+        logStateTransition(ant.antID, "Initial", "FoundFood",
+                           "found food at (%d, %d)", food.first, food.second);
         ant.switchTo(FoundFood{.path = {}, .food = food}, this);
     }
-    
+
     #ifdef DEBUG_TOTAL_ENERGY
     /* calculate energy for all food sources as a debug parameter */
     std::vector<Coord> allFoodLoc;

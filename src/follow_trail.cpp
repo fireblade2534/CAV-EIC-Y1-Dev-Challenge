@@ -1,8 +1,13 @@
 #include <antworld.h>
 
-#define MAX_TRAIL 5
+#define MAX_TRAIL 1000
 
-void FollowingPheromoneTrail::onChangeFrom(Ant &ant, AntWorld *world) {}
+void FollowingPheromoneTrail::onChangeFrom(Ant &ant, AntWorld *world) {
+    if (this->pheromoneTarget.first != -1 &&
+        this->pheromoneTarget.second != -1) {
+        ant.noReachFood.push_back(this->pheromoneTarget);
+    }
+}
 
 /*
    Scan the closest food source and assign it to the ant.
@@ -16,6 +21,8 @@ void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
 
     // Everything has faded
     if (foodTrails.empty()) {
+        logStateTransition(ant.antID, "FollowingPheromoneTrail",
+                           "DeterminedExploration", "trail completely faded");
         ant.switchTo(DeterminedExploration{}, world);
         return;
     }
@@ -76,7 +83,25 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
 
         ant.switchTo(DeterminedExploration{}, world);
         return;
-    } else if (ant.position == this->pheromoneTarget) {
+    }
+
+    // Scan for food while following trail
+    auto foods = ant.foodScan(world->foodMap);
+    auto positionPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
+
+    Coord foodChoice = ant.chooseTarget(foods, positionPheromones, ant.foodRadius, world->rng);
+    if (foodChoice.first != -1 && foodChoice.second != -1) {
+        logStateTransition(ant.antID, "FollowingPheromoneTrail", "FoundFood",
+                           "found food at (%d, %d) after following trail", foodChoice.first,
+                           foodChoice.second);
+
+        ant.switchTo(FoundFood{.path = {}, .food = foodChoice}, world);
+        return;
+    }
+
+    if (ant.position == this->pheromoneTarget) {
+        ant.erasePheromone(world->pheromoneMap, PheromoneType::Food);
+
         if (ant.carryingFood) {
             logStateTransition(ant.antID, "FollowingPheromoneTrai", "ReturningToHub",
                                "food spotted at pheromone location");
@@ -93,21 +118,6 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
         }
     }
 
-    // Scan for food while following trail
-    auto foods = ant.foodScan(world->foodMap);
-    auto positionPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
-
-    Coord foodChoice = ant.chooseTarget(foods, positionPheromones, ant.foodRadius, world->rng);
-
-    if (foodChoice.first != -1 && foodChoice.second != -1) {
-        logStateTransition(ant.antID, "FollowingPheromoneTrail", "FoundFood",
-                           "found food at (%d, %d) after following trail", foodChoice.first,
-                           foodChoice.second);
-
-        ant.switchTo(FoundFood{.path = {}, .food = foodChoice}, world);
-        return;
-    }
-
     auto before = ant.position;
     if (before == ant.move(world->terrainMap,
                            this->explorePath[this->currentStep++],
@@ -117,5 +127,7 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
 
         ant.switchTo(DeterminedExploration{}, world);
         return;
+    } else {
+        ant.erasePheromone(world->pheromoneMap, PheromoneType::Food);
     }
 }
