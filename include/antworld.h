@@ -105,7 +105,7 @@ public:
     void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int strength = 10);
     void erasePheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
-    // self-destruct option since ant cannot move anymore
+    // Self-destruct option since ant cannot move anymore
     void combust();
 
     bool anyLegalMove(MapTemplate& terrainMap, MapTemplate& foodMap);
@@ -122,10 +122,10 @@ public:
     bool carryingFood{false};
     AntState state{DeterminedExploration {}};
 
-    // foods that are out of reach due to low energy
+    // Foods that are out of reach due to low energy
     std::vector<Coord> noReachFood;
 
-    // exploration related fields
+    // Exploration related fields
     double epsilon;
     int stickiness;
     std::vector<double> actionValueTable = {0.0, 0.0};
@@ -133,14 +133,14 @@ public:
     std::vector<int> optimalActions;
     int randomActionCount = 0;
 
-    /* actionIndex can either be -1 for when ant does not move, 0 for when ant
+    /* ActionIndex can either be -1 for when ant does not move, 0 for when ant
      * moves according to determined exploration and 1 when ant moves according
      * to random exploration */
     int actionIndex = 0;
     
     int antID = 0;
 
-    /* class members */
+    /* Class members */
     constexpr static int dr[4] = {1, -1, 0, 0};
     constexpr static int dc[4] = {0, 0, 1, -1};
 };
@@ -176,7 +176,7 @@ public:
 
     int score = 0;
 
-    // internal exploration score system
+    // Internal exploration score system
     int foodCount;
     int foodScore = 3;
     int pheromoneScore = 2;

@@ -78,12 +78,12 @@ Coord Ant::chooseTarget(std::vector<Coord> targets, std::vector<Coord> positions
     }
 
     if (sortByDistance) {
-        std::sort(targets.begin(), targets.end(),
+        std::stable_sort(
+            targets.begin(),
+            targets.end(),
             [this](const Coord& a, const Coord& b) {
-                int distanceA = getManhattanDistance(this->position, a);
-                int distanceB = getManhattanDistance(this->position, b);
-
-                return distanceA < distanceB;
+                return getManhattanDistance(this->position, a) <
+                    getManhattanDistance(this->position, b);
             }
         );
     }

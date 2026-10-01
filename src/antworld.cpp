@@ -8,12 +8,12 @@
 //
 
 Ant::Ant(int ID, int initEnergy, Coord homeCoordinates, double epsilon, int stickiness) {
-    // assign initial energy
+    // Assign initial energy
     this->energy = initEnergy;
 
     this -> antID = ID;
 
-    // assign positions
+    // Assign positions
     this->position = homeCoordinates;
     this->homeCoord = homeCoordinates;
     this->epsilon = epsilon;
@@ -24,7 +24,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     : rng(seed) {
     // Generate the various world map layers
     this->terrainMap = generateWorldMap(mapSize_x, mapSize_y, this->rng);
-    // come back to this
+
     this->foodCount = int(mapSize_x * mapSize_y * 0.4);
     this->foodMap = spreadFood(mapSize_x, mapSize_y, this->foodCount, this->rng);
     this->pheromoneMap = PheromoneTemplate(
@@ -42,16 +42,16 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
            this->homeCoordinates.second);
     #endif
 
-    // initialize all the ants
+    // Initialize all the ants
     for (int i = 0; i < antCount; ++i) {
-        // and initial energy for each ant
+        // Initialize energy for each ant
         int initialEnergy = std::uniform_int_distribution<int>(
             int(mapSize_x * mapSize_y * 0.2),
             int(mapSize_x * mapSize_y * 0.4))(rng);
         this->ants.emplace_back(i, initialEnergy, this->homeCoordinates);
     }
 
-    // assign general exploration direction for the ants
+    // Assign general exploration direction for the ants
     const int cx = mapSize_x / 2;
     const int cy = mapSize_y / 2;
 
@@ -69,7 +69,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
         currentDir = (currentDir + 1) % this->exploreDirections.size();
     }
 
-    /* assign foods that are close to base to avoid early collision where all
+    /* Assign foods that are close to base to avoid early collision where all
      * distances are the same */
     auto nearbyFoods = ants[0].foodScan(foodMap);
     for (int i = 0, currentAntIndex = 0;
