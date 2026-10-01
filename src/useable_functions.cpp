@@ -221,8 +221,6 @@ void Ant::dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int
  * @param pheromoneMap Pheromone layer of world map
  */
 void Ant::erasePheromone(PheromoneTemplate &pheromoneMap, PheromoneType type) {
-
-
     switch (type) {
         case PheromoneType::Position:
             pheromoneMap[this->position.first][this->position.second].first = 0;
