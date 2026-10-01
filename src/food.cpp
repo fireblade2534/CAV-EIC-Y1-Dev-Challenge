@@ -59,17 +59,27 @@ void FoundFood::beforeTick(Ant &ant, AntWorld *world) {
 }
 
 void FoundFood::onTick(Ant& ant, AntWorld* world) {
+    if (ant.carryingFood) {
+        logStateTransition(ant.antID, "FoundFood", "ReturningToHub", "reached food");
+
+        ant.switchTo(ReturningToHub{}, world);
+        return;
+    }
+
+    if (world->foodMap[this->food.first][this->food.second] == 0) {
+        logStateTransition(ant.antID, "FoundFood", "DeterminedExploration", "food taken");
+
+        ant.switchTo(DeterminedExploration{}, world);
+
+        ant.erasePheromone(world->pheromoneMap, PheromoneType::Position);
+        return;
+    }
+
     auto before = ant.position;
     if (before == this->food) {
-        if (ant.carryingFood) {
-            logStateTransition(ant.antID, "FoundFood", "ReturningToHub", "reached food");
+        logStateTransition(ant.antID, "FoundFood", "DeterminedExploration", "food taken");
 
-            ant.switchTo(ReturningToHub{}, world);
-        } else {
-            logStateTransition(ant.antID, "FoundFood", "DeterminedExploration", "food taken");
-
-            ant.switchTo(DeterminedExploration{}, world);
-        }
+        ant.switchTo(DeterminedExploration{}, world);
 
         ant.erasePheromone(world->pheromoneMap, PheromoneType::Position);
         return;
