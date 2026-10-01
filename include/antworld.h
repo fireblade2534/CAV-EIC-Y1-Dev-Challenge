@@ -72,18 +72,20 @@ using AntState = std::variant<
     RandomExploration
 >;
 
-#ifdef DEBUG_STATE_TRANSITION
+
 #include <stdarg.h>
 inline void logStateTransition(int id, std::string from, std::string to,
                                const char* reason, ...) {
+    #ifdef DEBUG_STATE_TRANSITION
     va_list args;
     va_start(args, reason);
     printf("Transition (ant %d): %s => %s | Reason: ", id, from.c_str(), to.c_str());
     vfprintf(stdout, reason, args);
     va_end(args);
     printf("\n");
+    #endif
 }
-#endif
+
 
 class Ant {
 public:

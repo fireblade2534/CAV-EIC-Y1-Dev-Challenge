@@ -37,10 +37,10 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     std::uniform_int_distribution<int> colDist(0, mapSize_y - 1);
     this->homeCoordinates = {rowDist(rng), colDist(rng)};
 
-#ifdef DEBUG_STATE_TRANSITION
+    #ifdef DEBUG_STATE_TRANSITION
     printf("HOME COORD: (%d, %d)\n", this->homeCoordinates.first,
            this->homeCoordinates.second);
-#endif
+    #endif
 
     // initialize all the ants
     for (int i = 0; i < antCount; ++i) {
@@ -48,7 +48,6 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
         int initialEnergy = std::uniform_int_distribution<int>(
             int(mapSize_x * mapSize_y * 0.2),
             int(mapSize_x * mapSize_y * 0.4))(rng);
-        std::cout << initialEnergy << std::endl;
         this->ants.emplace_back(i, initialEnergy, this->homeCoordinates);
     }
 
@@ -80,7 +79,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
         ant.switchTo(FoundFood{.path = {}, .food = food}, this);
     }
     
-#ifdef DEBUG_TOTAL_ENERGY
+    #ifdef DEBUG_TOTAL_ENERGY
     /* calculate energy for all food sources as a debug parameter */
     std::vector<Coord> allFoodLoc;
     for (int i  = 0; (size_t)i < foodMap.size(); i++) {
@@ -116,7 +115,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     }
 
     printf("total cost: %d, total ant energy: %d\n", totalCost, totalAntEnergy);
-#endif
+    #endif
 }
 
 Coord AntWorld::getNewExploreDirection(Coord oldDirection) {

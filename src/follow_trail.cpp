@@ -88,26 +88,23 @@ void FollowingPheromoneTrail::beforeTick(Ant &ant, AntWorld *world) {
 void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     if (this->pheromoneTarget.first == -1 ||
         this->pheromoneTarget.second == -1) {
-#ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "FollowingPheromoneTrail", "DeterminedExploration",
                            "no valid pheormone location");
-#endif
+
         ant.switchTo(DeterminedExploration{}, world);
         return;
     } else if (ant.position == this->pheromoneTarget) {
         if (ant.carryingFood) {
-#ifdef DEBUG_STATE_TRANSITION
             logStateTransition(ant.antID, "FollowingPheromoneTrai", "ReturningToHub",
                                "food spotted at pheromone location");
-#endif
+
             ant.switchTo(ReturningToHub{}, world);
             return;
         } else {
-#ifdef DEBUG_STATE_TRANSITION
             logStateTransition(ant.antID, "FollowingPheromoneTrail",
                                "DeterminedExploration",
                                "reached pheromone location but no food found");
-#endif
+
             ant.switchTo(DeterminedExploration{}, world);
             return;
         }
@@ -120,11 +117,10 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     Coord foodChoice = ant.foodTarget(foods, trailPheromones, world->rng);
 
     if (foodChoice.first != -1 && foodChoice.second != -1) {
-#ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "FollowingPheromoneTrail", "FoundFood",
                            "found food at (%d, %d) after following trail", foodChoice.first,
                            foodChoice.second);
-#endif
+
         ant.switchTo(FoundFood{.path = {}, .food = foodChoice}, world);
         return;
     }
@@ -133,10 +129,9 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     if (before == ant.move(world->terrainMap,
                            this->explorePath[this->currentStep++],
                            world->foodMap)) {
-#ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "FollowingPheromoneTrail", "DeterminedExploration",
                            "cannot reach pheromone location");
-#endif
+
         ant.switchTo(DeterminedExploration{}, world);
         return;
     }
