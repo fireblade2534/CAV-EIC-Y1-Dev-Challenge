@@ -63,52 +63,33 @@ std::vector<Coord> Ant::pheromoneScan(PheromoneTemplate &pheromoneMap, Pheromone
     return pheromoneLocation;
 }
 
-/** @brief Checks all ants within pheromoneRadius blocks of itself.
- *
- * @param antWorld the world
- *
- * @return vector of ants in that range
- */
-std::vector<Ant*> Ant::antScan(AntWorld &antWorld) {
-    std::vector<Ant*> ants = {};
-    for (Ant& ant : antWorld.ants) {
-        if (&ant == this) {
-            continue;
-        }
-            
-        if (std::abs(ant.position.first - this->position.first) <= antRadius && std::abs(ant.position.second - this->position.second) <= antRadius) {
-            ants.push_back(&ant);
-        }
-    }
-
-    return ants;
-}
-
 /** @brief Chooses which food to go to
  *
- * @param foods The vector of foods in range
+ * @param targets The vector of targets in range
  * @param positions The vector of ants in range
  * @param rng The rng generator
  *
- * @return The target food for the ant. Will be -1, -1 if the ant shouldn't go to a food
+ * @return The target for the ant. Will be -1, -1 if the ant shouldn't go to a target
  * 
  */
-Coord Ant::foodTarget(std::vector<Coord> foods, std::vector<Coord> positions, std::mt19937& rng) {
-    if (foods.empty()) {
+Coord Ant::chooseTarget(std::vector<Coord> targets, std::vector<Coord> positions, int detectionRadius, std::mt19937& rng, bool sortByDistance) {
+    if (targets.empty()) {
         return {-1, -1};
     }
 
-    std::sort(foods.begin(), foods.end(),
-        [this](const Coord& a, const Coord& b) {
-            int distanceA = getManhattanDistance(this->position, a);
-            int distanceB = getManhattanDistance(this->position, b);
+    if (sortByDistance) {
+        std::sort(targets.begin(), targets.end(),
+            [this](const Coord& a, const Coord& b) {
+                int distanceA = getManhattanDistance(this->position, a);
+                int distanceB = getManhattanDistance(this->position, b);
 
-            return distanceA < distanceB;
-        }
-    );
+                return distanceA < distanceB;
+            }
+        );
+    }
 
-    for (const Coord& food : foods) {
-        int selfDistance = getManhattanDistance(this->position, food);
+    for (const Coord& target : targets) {
+        int selfDistance = getManhattanDistance(this->position, target);
 
         bool selfClosest = true;
         std::vector<Coord> antWithSameDist;
@@ -119,14 +100,14 @@ Coord Ant::foodTarget(std::vector<Coord> foods, std::vector<Coord> positions, st
             }
 
             // Outside of the other ant's detection radius
-            if (std::abs(otherAnt.first - food.first) >
-                    this->foodRadius ||
-                std::abs(otherAnt.second - food.second) >
-                    this->foodRadius) {
+            if (std::abs(otherAnt.first - target.first) >
+                    detectionRadius ||
+                std::abs(otherAnt.second - target.second) >
+                    detectionRadius) {
                 continue;
             }
 
-            int theirDistance = getManhattanDistance(otherAnt, food);
+            int theirDistance = getManhattanDistance(otherAnt, target);
 
             if (theirDistance < selfDistance) {
                 selfClosest = false;
@@ -138,10 +119,10 @@ Coord Ant::foodTarget(std::vector<Coord> foods, std::vector<Coord> positions, st
 
         if (selfClosest) {
             if (antWithSameDist.empty()) {
-                return food;
+                return target;
             }
 
-            /* (1 / n) chance of going for the food, with n being the number
+            /* (1 / n) chance of going for the target, with n being the number
                 * of ant at the same distance */
             std::uniform_int_distribution<int> dist(
                 1,
@@ -150,7 +131,7 @@ Coord Ant::foodTarget(std::vector<Coord> foods, std::vector<Coord> positions, st
 
             int willGo = dist(rng);
             if (willGo == 1) {
-                return food;
+                return target;
             }
         }
     }
@@ -168,9 +149,9 @@ void Ant::pickupFood(MapTemplate &foodMap) {
 /** @brief This function moves the ant to the provided step.
  * The step can only be one unit in the cardinal directions. The ant will step if it has the energy to do so. If food exists at the step, it will pick it up. If ant is already at location, return ant's current locatino with no cost.
  *
- * @param terrainMap terrain layer of the world map
- * @param step coordinates of the step
- * @param foodMap food layer of the world map
+ * @param terrainMap Terrain layer of the world map
+ * @param step Coordinates of the step
+ * @param foodMap Food layer of the world map
  *
  * @return Coordinates of final ant position. Can be used to double check it's final position
  */
@@ -214,9 +195,9 @@ Coord Ant::move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap) {
     return this->position;
 }
 
-/** @brief drops a pheromone at the ant's current location
+/** @brief Drops a pheromone at the ant's current location
  *
- * @param pheromoneMap pheromone layer of world map
+ * @param pheromoneMap Pheromone layer of world map
  */
 void Ant::dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int strength) {
 
@@ -235,19 +216,19 @@ void Ant::dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int
     }
 }
 
-/** @brief erase a pheromone at the ant's current location
+/** @brief Erase a pheromone at the ant's current location
  *
- * @param pheromoneMap pheromone layer of world map
+ * @param pheromoneMap Pheromone layer of world map
  */
 void Ant::erasePheromone(PheromoneTemplate &pheromoneMap, PheromoneType type) {
 
 
     switch (type) {
-    case PheromoneType::Position:
-        pheromoneMap[this->position.first][this->position.second].first = 0;
-        break;
-    case PheromoneType::Food:
-        pheromoneMap[this->position.first][this->position.second].second = 0;
-        break;
+        case PheromoneType::Position:
+            pheromoneMap[this->position.first][this->position.second].first = 0;
+            break;
+        case PheromoneType::Food:
+            pheromoneMap[this->position.first][this->position.second].second = 0;
+            break;
     }
 }

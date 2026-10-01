@@ -93,9 +93,8 @@ public:
 
     std::vector<Coord> foodScan(MapTemplate &foodMap, bool filterNoReach = true);
     std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
-    std::vector<Ant*> antScan(AntWorld &antWorld);
 
-    Coord foodTarget(std::vector<Coord> foods, std::vector<Coord> trails, std::mt19937& rng);
+    Coord chooseTarget(std::vector<Coord> targets, std::vector<Coord> positions, int detectionRadius, std::mt19937& rng, bool sortByDistance = true);
 
     Coord move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap);
 

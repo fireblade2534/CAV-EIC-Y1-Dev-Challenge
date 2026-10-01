@@ -9,7 +9,7 @@ int main() {
      * always be generated. You can use this to test reproducibly while developing.
      */
     const uint32_t SEED = 12345;
-    const int LOOPS = 200;
+    const int LOOPS = 400;
 
     const int MAX_SIMULATION_STEP_COUNT = 1000;
     // once you're confident and want to begin testing on random seeds, you can comment out the above line

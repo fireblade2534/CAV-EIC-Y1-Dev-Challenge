@@ -43,32 +43,15 @@ void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
        have a certain strengh, since those will be the ones closer to the food
        source.
     */
-    for (int i = 0; i < std::min(MAX_TRAIL, (int)foodTrails.size()); i++) {
-        auto &loc = foodTrails[i];
 
-        // if there's an ant closer, yield
-        int selfDist = getManhattanDistance(ant.position, loc);
-        bool closest = true;
-
-        for (auto &other : others) {
-            int otherDist = getManhattanDistance(other, loc);
-
-            if (otherDist < selfDist) {
-                closest = false;
-                break;
-            }
-        }
-
-        if (closest) {
-            this->pheromoneTarget = loc;
-            break;
-        }
-    }
-
-    if (this->pheromoneTarget.first == -1 || this->pheromoneTarget.second == -1) {
+    Coord pheromoneTarget = ant.chooseTarget(foodTrails, others, ant.foodRadius, world->rng, false);
+    if (pheromoneTarget.first == -1 || pheromoneTarget.second == -1) {
         // Get the first regardless
         this->pheromoneTarget = *foodTrails.begin();
+    } else {
+        this->pheromoneTarget = pheromoneTarget;
     }
+    
 
     this->explorePath =
         shortestPath(world->terrainMap, ant.position, this->pheromoneTarget);
@@ -112,9 +95,9 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
 
     // Scan for food while following trail
     auto foods = ant.foodScan(world->foodMap);
-    auto trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
+    auto positionPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
 
-    Coord foodChoice = ant.foodTarget(foods, trailPheromones, world->rng);
+    Coord foodChoice = ant.chooseTarget(foods, positionPheromones, ant.foodRadius, world->rng);
 
     if (foodChoice.first != -1 && foodChoice.second != -1) {
         logStateTransition(ant.antID, "FollowingPheromoneTrail", "FoundFood",

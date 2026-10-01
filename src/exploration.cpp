@@ -101,7 +101,7 @@ void DeterminedExploration::onTick(Ant &ant, AntWorld *world) {
         ant.actionCountTable[ant.actionIndex] = k;
     }
 
-    Coord foodChoice = ant.foodTarget(foods, positionPheromones, world->rng);
+    Coord foodChoice = ant.chooseTarget(foods, positionPheromones, ant.foodRadius, world->rng);
     if (foodChoice.first != -1 && foodChoice.second != -1) {
         logStateTransition(ant.antID, "DeterminedExploration", "FoundFood",
                            "found food at (%d, %d)", foodChoice.first,

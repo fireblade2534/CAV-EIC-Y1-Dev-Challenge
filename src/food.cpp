@@ -13,7 +13,7 @@ void ReturningToHub::onTick(Ant& ant, AntWorld* world) {
     if (this->pheromoneTrail) {
         ant.dropPheromone(world->pheromoneMap, PheromoneType::Food);
     } else {
-        /* ant should drop food pheromone on sight of any other food, not just
+        /* Ant should drop food pheromone on sight of any other food, not just
          * the ones it is closest to */
         std::vector<Coord> foods = ant.foodScan(world->foodMap, false);
         if (!foods.empty()) {
@@ -48,7 +48,7 @@ void FoundFood::onChangeTo(Ant &ant, AntWorld *world) {
 }
 
 void FoundFood::onChangeFrom(Ant& ant, AntWorld* world) {
-    // push food position that ant can't reach into
+    // Push food position that ant can't reach into
     if (ant.position != this->food) {
         ant.noReachFood.push_back(this->food);
     }
