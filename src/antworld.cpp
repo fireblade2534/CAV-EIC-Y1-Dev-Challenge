@@ -8,12 +8,12 @@
 //
 
 Ant::Ant(int ID, int initEnergy, Coord homeCoordinates, double epsilon, int stickiness) {
-    // assign initial energy
+    // Assign initial energy
     this->energy = initEnergy;
 
     this -> antID = ID;
 
-    // assign positions
+    // Assign positions
     this->position = homeCoordinates;
     this->homeCoord = homeCoordinates;
     this->epsilon = epsilon;
@@ -24,7 +24,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     : rng(seed) {
     // Generate the various world map layers
     this->terrainMap = generateWorldMap(mapSize_x, mapSize_y, this->rng);
-    // come back to this
+
     this->foodCount = int(mapSize_x * mapSize_y * 0.4);
     this->foodMap = spreadFood(mapSize_x, mapSize_y, this->foodCount, this->rng);
     this->pheromoneMap = PheromoneTemplate(
@@ -37,22 +37,21 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     std::uniform_int_distribution<int> colDist(0, mapSize_y - 1);
     this->homeCoordinates = {rowDist(rng), colDist(rng)};
 
-#ifdef DEBUG_STATE_TRANSITION
+    #ifdef DEBUG_STATE_TRANSITION
     printf("HOME COORD: (%d, %d)\n", this->homeCoordinates.first,
            this->homeCoordinates.second);
-#endif
+    #endif
 
-    // initialize all the ants
+    // Initialize all the ants
     for (int i = 0; i < antCount; ++i) {
-        // and initial energy for each ant
+        // Initialize energy for each ant
         int initialEnergy = std::uniform_int_distribution<int>(
             int(mapSize_x * mapSize_y * 0.2),
             int(mapSize_x * mapSize_y * 0.4))(rng);
-        std::cout << initialEnergy << std::endl;
         this->ants.emplace_back(i, initialEnergy, this->homeCoordinates);
     }
 
-    // assign general exploration direction for the ants
+    // Assign general exploration direction for the ants
     const int cx = mapSize_x / 2;
     const int cy = mapSize_y / 2;
 
@@ -70,7 +69,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
         currentDir = (currentDir + 1) % this->exploreDirections.size();
     }
 
-    /* assign foods that are close to base to avoid early collision where all
+    /* Assign foods that are close to base to avoid early collision where all
      * distances are the same */
     auto nearbyFoods = ants[0].foodScan(foodMap);
     for (int i = 0, currentAntIndex = 0;
@@ -79,7 +78,8 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
         auto &food = nearbyFoods[i];
         ant.switchTo(FoundFood{.path = {}, .food = food}, this);
     }
-
+    
+    #ifdef DEBUG_TOTAL_ENERGY
     /* calculate energy for all food sources as a debug parameter */
     std::vector<Coord> allFoodLoc;
     for (int i  = 0; (size_t)i < foodMap.size(); i++) {
@@ -115,6 +115,7 @@ AntWorld::AntWorld(uint32_t seed, int mapSize_x, int mapSize_y, int antCount)
     }
 
     printf("total cost: %d, total ant energy: %d\n", totalCost, totalAntEnergy);
+    #endif
 }
 
 Coord AntWorld::getNewExploreDirection(Coord oldDirection) {
@@ -142,7 +143,7 @@ void Ant::switchTo(AntState nextState, AntWorld *world) {
         state);
 }
 
-bool Ant::tryLegalMove(MapTemplate &terrainMap, MapTemplate &foodMap) {
+bool Ant::anyLegalMove(MapTemplate &terrainMap, MapTemplate &foodMap) {
     for (int i = 0; i < 4; i++) {
         if (this->position.first + Ant::dr[i] < 0 ||
             (size_t)this->position.first + Ant::dr[i] >= terrainMap.size() ||
@@ -171,7 +172,11 @@ bool AntWorld::worldStep() {
     // Performs anything that needs to be done before the ants update
     this->beforeAntUpdate();
 
-    updatePheromones(this->pheromoneMap);
+    // Performs all before tick actions
+    for (Ant &ant : ants) {
+        std::visit([&ant, this](auto &current) { current.beforeTick(ant, this); },
+                   ant.state);
+    } 
 
     // Performs all ant actions
     for (Ant &ant : ants) {
@@ -182,21 +187,24 @@ bool AntWorld::worldStep() {
     // Performs anything that needs to be done after the ants update
     this->afterAntUpdate();
 
-    // checks game over state
+    // Checks game over state
     return this->isGameOver();
 }
 
-void AntWorld::beforeAntUpdate() {}
+void AntWorld::beforeAntUpdate() {
+    updatePheromones(this->pheromoneMap);
+}
 
 void AntWorld::afterAntUpdate() {
     for (auto it = this->ants.begin(); it != this->ants.end();) {
-        // check if any ants are at the home coordinate, with food
+        // Check if any ants are at the home coordinate, with food
         // if so, increase point count
         if (it->position == this->homeCoordinates && it->carryingFood) {
             this->score++;
             it->carryingFood = false;
         }
-        // if ant is out of energy and carrying food, drop food at last position
+
+        // If ant is out of energy and carrying food, drop food at last position
         // delete the ant from the array
         if (it->energy == 0) {
             if (it->carryingFood) {
@@ -210,16 +218,15 @@ void AntWorld::afterAntUpdate() {
 }
 
 bool AntWorld::isGameOver() {
-    // if there are no remaining ants, game over
+    // If there are no remaining ants, game over
     if (this->ants.empty()) {
         return true;
     }
 
-    // if there is no remaining food, congrats, game over
+    // If there is no remaining food, congrats, game over
     if (not hasFood(foodMap)) {
         return true;
     }
 
-    // else the game continues
     return false;
 }

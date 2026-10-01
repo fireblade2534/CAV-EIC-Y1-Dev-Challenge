@@ -7,13 +7,15 @@ void ReturningToHub::onChangeTo(Ant& ant, AntWorld* world) {
 
 void ReturningToHub::onChangeFrom(Ant& ant, AntWorld* world) {}
 
+void ReturningToHub::beforeTick(Ant &ant, AntWorld *world) {}
+
 void ReturningToHub::onTick(Ant& ant, AntWorld* world) {
     if (this->pheromoneTrail) {
         ant.dropPheromone(world->pheromoneMap, PheromoneType::Food);
     } else {
-        /* ant should drop food pheromone on sight of any other food, not just
+        /* Ant should drop food pheromone on sight of any other food, not just
          * the ones it is closest to */
-        std::vector<Coord> foods = ant.foodScan(world->foodMap);
+        std::vector<Coord> foods = ant.foodScan(world->foodMap, false);
         if (!foods.empty()) {
             this->pheromoneTrail = true;
         }
@@ -21,18 +23,16 @@ void ReturningToHub::onTick(Ant& ant, AntWorld* world) {
 
     auto before = ant.position;
     if (before == ant.homeCoord) {
-#ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "ReturningToHub", "DeterminedExploration",
                            "reached hub");
-#endif
+
         ant.switchTo(DeterminedExploration{}, world);
         return;
     } else if (before == ant.move(world->terrainMap,
                                   this->path[this->currentStep++],
                                   world->foodMap)) {
-#ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "ReturningToHub", "Combust", "no more legal move");
-#endif
+
         ant.combust();
         return;
     }
@@ -48,39 +48,50 @@ void FoundFood::onChangeTo(Ant &ant, AntWorld *world) {
 }
 
 void FoundFood::onChangeFrom(Ant& ant, AntWorld* world) {
-    // push food position that ant can't reach into
+    // Push food position that ant can't reach into
     if (ant.position != this->food) {
         ant.noReachFood.push_back(this->food);
     }
 }
 
+void FoundFood::beforeTick(Ant &ant, AntWorld *world) {
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 1);
+}
+
 void FoundFood::onTick(Ant& ant, AntWorld* world) {
-    auto before = ant.position;
-    if (before == this->food) {
-        if (ant.carryingFood) {
-#ifdef DEBUG_STATE_TRANSITION
-            logStateTransition(ant.antID, "FoundFood", "ReturningToHub", "reached food");
-#endif
-            ant.switchTo(ReturningToHub{}, world);
-            return;
-        } else {
-#ifdef DEBUG_STATE_TRANSITION
-            logStateTransition(ant.antID, "FoundFood", "DeterminedExploration", "food taken");
-#endif
-            ant.switchTo(DeterminedExploration{}, world);
-            return;
-        }
-    } else if (before == ant.move(world->terrainMap,
-                                  this->path[this->currentStep++],
-                                  world->foodMap)) {
-#ifdef DEBUG_STATE_TRANSITION
-        logStateTransition(ant.antID, "FoundFood", "DeterminedExploration",
-                           "out of energy for food at (%d, %d)",
-                           this->food.first, this->food.second);
-#endif
-        ant.switchTo(DeterminedExploration{}, world);
+    if (ant.carryingFood) {
+        logStateTransition(ant.antID, "FoundFood", "ReturningToHub", "reached food");
+
+        ant.switchTo(ReturningToHub{}, world);
         return;
     }
 
-    ant.dropPheromone(world->pheromoneMap, PheromoneType::Trail, 2);
+    if (world->foodMap[this->food.first][this->food.second] == 0) {
+        logStateTransition(ant.antID, "FoundFood", "DeterminedExploration", "food taken");
+
+        ant.switchTo(DeterminedExploration{}, world);
+
+        ant.erasePheromone(world->pheromoneMap, PheromoneType::Position);
+        return;
+    }
+
+    auto before = ant.position;
+    if (before == this->food) {
+        logStateTransition(ant.antID, "FoundFood", "DeterminedExploration", "food taken");
+
+        ant.switchTo(DeterminedExploration{}, world);
+
+        ant.erasePheromone(world->pheromoneMap, PheromoneType::Position);
+        return;
+    } else if (before == ant.move(world->terrainMap,
+                                  this->path[this->currentStep++],
+                                  world->foodMap)) {
+
+        logStateTransition(ant.antID, "FoundFood", "DeterminedExploration",
+                           "out of energy for food at (%d, %d)",
+                           this->food.first, this->food.second);
+
+        ant.switchTo(DeterminedExploration{}, world);
+        return;
+    }
 }

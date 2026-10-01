@@ -10,24 +10,24 @@ void FollowingPheromoneTrail::onChangeFrom(Ant &ant, AntWorld *world) {}
 void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
     this->pheromoneTarget = {-1, -1};
 
-    // scan using pheromone scan function
+    // Scan using pheromone scan function
     auto foodTrails =
         ant.pheromoneScan(world->pheromoneMap, PheromoneType::Food);
 
-    // everything has faded
+    // Everything has faded
     if (foodTrails.empty()) {
         ant.switchTo(DeterminedExploration{}, world);
         return;
     }
 
-    // sort for weakest pheromone strength first
+    // Sort for weakest pheromone strength first
     sort(foodTrails.begin(), foodTrails.end(),
          [world](const Coord &a, const Coord &b) -> bool {
              return world->pheromoneMap[a.first][a.second].second <
                     world->pheromoneMap[b.first][b.second].second;
          });
 
-    auto others = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
+    auto others = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
 
     /*
        Decides which pheromone location to go to and compute path. the rule for
@@ -43,37 +43,24 @@ void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
        have a certain strengh, since those will be the ones closer to the food
        source.
     */
-    for (int i = 0; i < std::min(MAX_TRAIL, (int)foodTrails.size()); i++) {
-        auto &loc = foodTrails[i];
 
-        // if there's an ant closer, yield
-        int selfDist = getManhattanDistance(ant.position, loc);
-        bool closest = true;
-
-        for (auto &other : others) {
-            int otherDist = getManhattanDistance(other, loc);
-
-            if (otherDist < selfDist) {
-                closest = false;
-                break;
-            }
-        }
-
-        if (closest) {
-            this->pheromoneTarget = loc;
-            break;
-        }
-    }
-
-    if (this->pheromoneTarget.first == -1 || this->pheromoneTarget.second == -1) {
-        // get the first regardless
+    Coord pheromoneTarget = ant.chooseTarget(foodTrails, others, ant.foodRadius, world->rng, false);
+    if (pheromoneTarget.first == -1 || pheromoneTarget.second == -1) {
+        // Get the first regardless
         this->pheromoneTarget = *foodTrails.begin();
+    } else {
+        this->pheromoneTarget = pheromoneTarget;
     }
+    
 
     this->explorePath =
         shortestPath(world->terrainMap, ant.position, this->pheromoneTarget);
     this->explorePath.erase(this->explorePath.begin());
     this->currentStep = 0;
+}
+
+void FollowingPheromoneTrail::beforeTick(Ant &ant, AntWorld *world) {
+    ant.dropPheromone(world->pheromoneMap, PheromoneType::Position, 1);
 }
 
 /*
@@ -84,47 +71,39 @@ void FollowingPheromoneTrail::onChangeTo(Ant &ant, AntWorld *world) {
 void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     if (this->pheromoneTarget.first == -1 ||
         this->pheromoneTarget.second == -1) {
-#ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "FollowingPheromoneTrail", "DeterminedExploration",
                            "no valid pheormone location");
-#endif
+
         ant.switchTo(DeterminedExploration{}, world);
         return;
     } else if (ant.position == this->pheromoneTarget) {
         if (ant.carryingFood) {
-#ifdef DEBUG_STATE_TRANSITION
             logStateTransition(ant.antID, "FollowingPheromoneTrai", "ReturningToHub",
                                "food spotted at pheromone location");
-#endif
+
             ant.switchTo(ReturningToHub{}, world);
             return;
         } else {
-#ifdef DEBUG_STATE_TRANSITION
             logStateTransition(ant.antID, "FollowingPheromoneTrail",
                                "DeterminedExploration",
                                "reached pheromone location but no food found");
-#endif
+
             ant.switchTo(DeterminedExploration{}, world);
             return;
         }
     }
 
-    // scan for food while following trail
+    // Scan for food while following trail
     auto foods = ant.foodScan(world->foodMap);
-    auto ants = ant.antScan(*world);
-    auto trailPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Trail);
-    std::erase_if(foods, [&](const Coord &foodLoc) {
-        return std::find(ant.noReachFood.begin(), ant.noReachFood.end(), foodLoc) != ant.noReachFood.end();
-    });
+    auto positionPheromones = ant.pheromoneScan(world->pheromoneMap, PheromoneType::Position);
 
-    Coord foodChoice = ant.foodTarget(ants, foods, trailPheromones);
+    Coord foodChoice = ant.chooseTarget(foods, positionPheromones, ant.foodRadius, world->rng);
 
     if (foodChoice.first != -1 && foodChoice.second != -1) {
-#ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "FollowingPheromoneTrail", "FoundFood",
                            "found food at (%d, %d) after following trail", foodChoice.first,
                            foodChoice.second);
-#endif
+
         ant.switchTo(FoundFood{.path = {}, .food = foodChoice}, world);
         return;
     }
@@ -133,10 +112,9 @@ void FollowingPheromoneTrail::onTick(Ant &ant, AntWorld *world) {
     if (before == ant.move(world->terrainMap,
                            this->explorePath[this->currentStep++],
                            world->foodMap)) {
-#ifdef DEBUG_STATE_TRANSITION
         logStateTransition(ant.antID, "FollowingPheromoneTrail", "DeterminedExploration",
                            "cannot reach pheromone location");
-#endif
+
         ant.switchTo(DeterminedExploration{}, world);
         return;
     }

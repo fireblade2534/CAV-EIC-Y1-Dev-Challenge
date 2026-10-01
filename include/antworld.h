@@ -19,6 +19,7 @@ struct FoundFood {
     
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
@@ -29,6 +30,7 @@ struct ReturningToHub {
 
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
@@ -38,6 +40,7 @@ struct FollowingPheromoneTrail {
     int currentStep = -1;
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
@@ -49,6 +52,7 @@ struct DeterminedExploration {
     void setExploreDirection(Coord direction, Ant&ant, AntWorld* world);
     void onChangeTo(Ant& ant, AntWorld* world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
     int chooseAction(Ant& ant, AntWorld* world);
 };
@@ -56,6 +60,7 @@ struct DeterminedExploration {
 struct RandomExploration {
     void onChangeTo(Ant &ant, AntWorld *world);
     void onChangeFrom(Ant& ant, AntWorld* world);
+    void beforeTick(Ant& ant, AntWorld* world);
     void onTick(Ant& ant, AntWorld* world);
 };
 
@@ -67,28 +72,29 @@ using AntState = std::variant<
     RandomExploration
 >;
 
-#ifdef DEBUG_STATE_TRANSITION
+
 #include <stdarg.h>
 inline void logStateTransition(int id, std::string from, std::string to,
                                const char* reason, ...) {
+    #ifdef DEBUG_STATE_TRANSITION
     va_list args;
     va_start(args, reason);
     printf("Transition (ant %d): %s => %s | Reason: ", id, from.c_str(), to.c_str());
     vfprintf(stdout, reason, args);
     va_end(args);
     printf("\n");
+    #endif
 }
-#endif
+
 
 class Ant {
 public:
     Ant(int ID, int initEnergy, Coord homeCoordinates, double epsilon = 0.2, int stickiness = 8);
 
-    std::vector<Coord> foodScan(MapTemplate &foodMap);
+    std::vector<Coord> foodScan(MapTemplate &foodMap, bool filterNoReach = true);
     std::vector<Coord> pheromoneScan(PheromoneTemplate &pheromoneMap, PheromoneType type);
-    std::vector<Ant*> antScan(AntWorld &antWorld);
 
-    Coord foodTarget(std::vector<Ant*> ants, std::vector<Coord> foods, std::vector<Coord> trails);
+    Coord chooseTarget(std::vector<Coord> targets, std::vector<Coord> positions, int detectionRadius, std::mt19937& rng, bool sortByDistance = true);
 
     Coord move(MapTemplate &terrainMap, Coord step, MapTemplate &foodMap);
 
@@ -99,10 +105,10 @@ public:
     void dropPheromone(PheromoneTemplate &pheromoneMap, PheromoneType type, int strength = 10);
     void erasePheromone(PheromoneTemplate &pheromoneMap, PheromoneType type);
 
-    // self-destruct option since ant cannot move anymore
+    // Self-destruct option since ant cannot move anymore
     void combust();
 
-    bool tryLegalMove(MapTemplate& terrainMap, MapTemplate& foodMap);
+    bool anyLegalMove(MapTemplate& terrainMap, MapTemplate& foodMap);
 
     int energy{0};
 
@@ -116,10 +122,10 @@ public:
     bool carryingFood{false};
     AntState state{DeterminedExploration {}};
 
-    // foods that are out of reach due to low energy
+    // Foods that are out of reach due to low energy
     std::vector<Coord> noReachFood;
 
-    // exploration related fields
+    // Exploration related fields
     double epsilon;
     int stickiness;
     std::vector<double> actionValueTable = {0.0, 0.0};
@@ -127,14 +133,14 @@ public:
     std::vector<int> optimalActions;
     int randomActionCount = 0;
 
-    /* actionIndex can either be -1 for when ant does not move, 0 for when ant
+    /* ActionIndex can either be -1 for when ant does not move, 0 for when ant
      * moves according to determined exploration and 1 when ant moves according
      * to random exploration */
     int actionIndex = 0;
     
     int antID = 0;
 
-    /* class members */
+    /* Class members */
     constexpr static int dr[4] = {1, -1, 0, 0};
     constexpr static int dc[4] = {0, 0, 1, -1};
 };
@@ -170,7 +176,7 @@ public:
 
     int score = 0;
 
-    // internal exploration score system
+    // Internal exploration score system
     int foodCount;
     int foodScore = 3;
     int pheromoneScore = 2;
